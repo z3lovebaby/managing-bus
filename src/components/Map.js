@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -26,6 +26,10 @@ const DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 const Map = () => {
+  useEffect(() => {
+    // Đoạn này đảm bảo bản đồ sẽ được render lại khi component mount
+    window.dispatchEvent(new Event("resize"));
+  }, []);
   return (
     <MapContainer
       center={[21.0285, 105.8542]}

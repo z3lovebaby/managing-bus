@@ -27,8 +27,8 @@ function App() {
           }
         >
           <Route element={<PublicRoutes />}>
-            <Route path="/test" element={<Map />} />
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/test" element={<Dashboard />} />
+            <Route path="/" element={<Map />} />
             <Route path="/users" element={<UserList />} />
           </Route>
         </Route>

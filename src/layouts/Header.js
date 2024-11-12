@@ -13,12 +13,11 @@ const Header = ({ toggleSidebar }) => {
   return (
     <nav className="sb-topnav navbar">
       <a className="navbar-brand ps-3" href="index.html">
-        Managing Bus
+        Managing Busa
       </a>
       <button
         className="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0"
         id="sidebarToggle"
-        href="#!"
         onClick={toggleSidebar}
       >
         <i className="fas fa-bars"></i>
@@ -46,10 +45,11 @@ const Header = ({ toggleSidebar }) => {
           <a
             className="nav-link dropdown-toggle"
             id="navbarDropdown"
-            href="#"
             role="button"
             data-bs-toggle="dropdown"
             aria-expanded="false"
+            href="#"
+            onClick={(e) => e.preventDefault()} // Prevents page jump
           >
             <i className="fas fa-user fa-fw"></i>
           </a>
@@ -71,9 +71,9 @@ const Header = ({ toggleSidebar }) => {
               <hr className="dropdown-divider" />
             </li>
             <li>
-              <a className="dropdown-item" onClick={onHandleLogout}>
+              <button className="dropdown-item" onClick={onHandleLogout}>
                 Logout
-              </a>
+              </button>
             </li>
           </ul>
         </li>
