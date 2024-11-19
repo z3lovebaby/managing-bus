@@ -88,7 +88,7 @@ const Login = () => {
   };
 
   return (
-    <div id="layoutAuthentication" className="bg-primary">
+    <div id="layoutAuthentication" className="bg-info">
       <div id="layoutAuthentication_content">
         <main>
           <div className="container">
@@ -97,7 +97,7 @@ const Login = () => {
                 <div className="card shadow-lg border-0 rounded-lg mt-5">
                   <div className="card-header">
                     <h3 className="text-center font-weight-light my-4">
-                      Login
+                      Đăng nhập
                     </h3>
                   </div>
                   <div className="card-body">
@@ -130,7 +130,7 @@ const Login = () => {
                       </div>
                       <div className="d-flex align-items-center justify-content-between mt-4 mb-0">
                         <a className="small" href="password.html">
-                          Forgot Password?
+                          Quên mật khẩu?
                         </a>
                         <button
                           className="btn btn-primary"
@@ -144,7 +144,7 @@ const Login = () => {
                   </div>
                   <div className="card-footer text-center py-3">
                     <div className="small">
-                      <Link to="/register">Need an account? Sign up!</Link>
+                      <Link to="/register">Chưa có tài khoản?Đăng ký ngay</Link>
                     </div>
                   </div>
                 </div>

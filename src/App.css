@@ -14,6 +14,7 @@
 }
 
 .App-header {
+  position: fixed;
   background-color: #70f06a;
   min-height: 100vh;
   display: flex;
@@ -49,13 +50,22 @@
 
 .sb-sidenav,
 .navbar {
-  background-color: #b7f0a9d2;
+  background-color: #c9f8bdd2;
 }
-
+.navbar{
+  position: fixed;
+  width: 100%;
+}
 .App-link {
   color: #61dafb;
 }
-
+.language-buttons {
+  position: fixed;
+  bottom: 70px;
+  right: 20px;
+  z-index: 1000;
+  /* Đảm bảo nút nằm trên các thành phần khác */
+}
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

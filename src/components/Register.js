@@ -113,7 +113,7 @@ const Register = () => {
     setIsSubmitted(true);
   };
   return (
-    <div id="layoutAuthentication" className="bg-primary">
+    <div id="layoutAuthentication" className="bg-info">
       <div id="layoutAuthentication_content">
         <main>
           <div className="container">

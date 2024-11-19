@@ -12,8 +12,8 @@ const Header = ({ toggleSidebar }) => {
 
   return (
     <nav className="sb-topnav navbar">
-      <a className="navbar-brand ps-3" href="index.html">
-        Managing Busa
+      <a className="navbar-brand ps-3" href="/">
+        <i class="fa fa-bus" aria-hidden="true"></i> Managing Bus
       </a>
       <button
         className="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0"
@@ -59,20 +59,20 @@ const Header = ({ toggleSidebar }) => {
           >
             <li>
               <a className="dropdown-item" href="#!">
-                Settings
+                Thông tin cá nhân
               </a>
             </li>
-            <li>
+            {/* <li>
               <a className="dropdown-item" href="#!">
                 Activity Log
               </a>
-            </li>
+            </li> */}
             <li>
               <hr className="dropdown-divider" />
             </li>
             <li>
               <button className="dropdown-item" onClick={onHandleLogout}>
-                Logout
+                Đăng xuất
               </button>
             </li>
           </ul>
