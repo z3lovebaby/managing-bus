@@ -27,6 +27,7 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 const Map = () => {
   useEffect(() => {
+    console.log('Load Map');
     // Đoạn này đảm bảo bản đồ sẽ được render lại khi component mount
     window.dispatchEvent(new Event("resize"));
   }, []);

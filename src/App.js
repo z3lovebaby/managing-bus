@@ -26,15 +26,15 @@ function App() {
             <Main toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
           }
         >
-          <Route element={<PublicRoutes />}>
-            <Route path="/test" element={<Dashboard />} />
-            <Route path="/" element={<Map />} />
-            <Route path="/users" element={<UserList />} />
-          </Route>
+          <Route path="/" element={<Map />} />
         </Route>
         <Route element={<PublicRoutes />}>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+        </Route>
+        <Route element={<PrivateRoutes />}>
+          <Route path="/users" element={<UserList />} />
+          <Route path="/test" element={<Dashboard />} />
         </Route>
       </Route>
     </Routes>

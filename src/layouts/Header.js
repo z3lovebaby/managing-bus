@@ -1,14 +1,23 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-
+import { useState, useEffect } from "react";
 const Header = ({ toggleSidebar }) => {
   const navigate = useNavigate();
-
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const onHandleLogout = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     navigate("/login");
   };
+  const onHandleLogIn = () => {
+    navigate("/login");
+  };
+  useEffect(() => {
+    let token = localStorage.getItem("access_token") || false;
+    if (!token) {
+      setIsLoggedIn(false);
+    } else setIsLoggedIn(true);
+  });
 
   return (
     <nav className="sb-topnav navbar">
@@ -40,44 +49,45 @@ const Header = ({ toggleSidebar }) => {
           </button>
         </div>
       </form>
-      <ul className="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
-        <li className="nav-item dropdown">
-          <a
-            className="nav-link dropdown-toggle"
-            id="navbarDropdown"
-            role="button"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-            href="#"
-            onClick={(e) => e.preventDefault()} // Prevents page jump
-          >
-            <i className="fas fa-user fa-fw"></i>
-          </a>
-          <ul
-            className="dropdown-menu dropdown-menu-end"
-            aria-labelledby="navbarDropdown"
-          >
-            <li>
-              <a className="dropdown-item" href="#!">
-                Thông tin cá nhân
-              </a>
-            </li>
-            {/* <li>
-              <a className="dropdown-item" href="#!">
-                Activity Log
-              </a>
-            </li> */}
-            <li>
-              <hr className="dropdown-divider" />
-            </li>
-            <li>
-              <button className="dropdown-item" onClick={onHandleLogout}>
-                Đăng xuất
-              </button>
-            </li>
-          </ul>
-        </li>
-      </ul>
+      {!isLoggedIn ? (
+        <button className="btn btn-primary" onClick={onHandleLogIn}>
+          Đănng nhập
+        </button>
+      ) : (
+        <ul className="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
+          <li className="nav-item dropdown">
+            <a
+              className="nav-link dropdown-toggle"
+              id="navbarDropdown"
+              role="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+              href="#"
+              onClick={(e) => e.preventDefault()} // Prevents page jump
+            >
+              <i className="fas fa-user fa-fw"></i>
+            </a>
+            <ul
+              className="dropdown-menu dropdown-menu-end"
+              aria-labelledby="navbarDropdown"
+            >
+              <li>
+                <a className="dropdown-item" href="#!">
+                  Thông tin cá nhân
+                </a>
+              </li>
+              <li>
+                <hr className="dropdown-divider" />
+              </li>
+              <li>
+                <button className="dropdown-item" onClick={onHandleLogout}>
+                  Đăng xuất
+                </button>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      )}
     </nav>
   );
 };

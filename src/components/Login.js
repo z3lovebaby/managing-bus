@@ -56,8 +56,8 @@ const Login = () => {
       requestApi("/login", "POST", loginData)
         .then((res) => {
           console.log(res);
-          // localStorage.setItem("access_token", res.data.access_token);
-          // localStorage.setItem("refresh_token", res.data.refresh_token);
+          localStorage.setItem("access_token", res.data.token);
+          //localStorage.setItem("refresh_token", res.data.refresh_token);
           toast.success("Đăng nhập thành công", {
             position: "top-right",
             autoClose: 3000,
