@@ -8,19 +8,28 @@ import Login from "./components/Login";
 import Register from "./components/Register";
 import PrivateRoutes from "./layouts/PrivateRoutes";
 import PublicRoutes from "./layouts/PublicRoutes";
+import RoleBasedRoute from "./layouts/RoleBasedRoute";
 import Layout from "./layouts/Layout";
 import UserList from "./components/user/UserList";
 import Map from "./components/Map";
+import ManageUser from "./components/admin/ManageUser";
+import QLNguoiDung from "./components/manager/QLNguoiDung";
+import Admin from "./components/admin/AdminDashboard";
+import Menu from "./components/admin/Menu";
+import AdminDashboard from "./components/admin/AdminDashboard";
+import QLTaiXe from "./components/manager/QLTaiXe";
+
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
-    console.log("1223445", isSidebarOpen);
     setIsSidebarOpen(!isSidebarOpen);
   };
+
   return (
     <Routes>
       <Route element={<Layout />}>
+        {/* Public Routes */}
         <Route
           element={
             <Main toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
@@ -32,9 +41,22 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Route>
+
+        <Route path="/manager/user-list" element={<QLNguoiDung />} />
+        <Route path="/manager/driver-list" element={<QLTaiXe />} />
+
+        {/* Private Routes */}
         <Route element={<PrivateRoutes />}>
           <Route path="/users" element={<UserList />} />
           <Route path="/test" element={<Dashboard />} />
+        </Route>
+
+        {/* Role-Based Routes */}
+        <Route element={<RoleBasedRoute requiredRole={true} />}>
+          <Route path="/admin" element={<Menu />}>
+            <Route path="/admin/admindb" element={<AdminDashboard />} />
+            <Route path="/admin/qluser" element={<ManageUser />} />
+          </Route>
         </Route>
       </Route>
     </Routes>

@@ -53,17 +53,18 @@ const Login = () => {
       //request login api
       console.log("request login api");
       dispatch(actions.controlLoading(true));
-      requestApi("/login", "POST", loginData)
+      requestApi("/auth/login", "POST", loginData)
         .then((res) => {
           console.log(res);
-          localStorage.setItem("access_token", res.data.token);
-          //localStorage.setItem("refresh_token", res.data.refresh_token);
-          toast.success("Đăng nhập thành công", {
+          localStorage.setItem("access_token", res.data.Authorization);
+          localStorage.setItem("admin", res.data.role);
+          localStorage.setItem("refresh_token", res.data.refresh_token);
+          toast.success(res.data.message, {
             position: "top-right",
             autoClose: 3000,
           });
           dispatch(actions.controlLoading(false));
-          navigate("/");
+          navigate("/admin");
         })
         .catch((err) => {
           dispatch(actions.controlLoading(false));

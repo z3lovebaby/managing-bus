@@ -7,9 +7,17 @@ const Main = ({ toggleSidebar, isSidebarOpen }) => {
   return (
     <div>
       <Header toggleSidebar={toggleSidebar} />
-      <div id="layoutSidenav">
-        <Sidebar isSidebarOpen={isSidebarOpen} />
-        <Outlet />
+      <div style={{ position: "relative", height: "calc(100vh - 64px)" }}>
+        <Sidebar isSidebarOpen={isSidebarOpen} role="user" />
+        <div
+          style={{
+            marginLeft: 0, // Map không bị đẩy
+            height: "100%",
+            transition: "margin-left 0.3s ease", // Cho hiệu ứng mượt khi sidebar xuất hiện
+          }}
+        >
+          <Outlet />
+        </div>
       </div>
     </div>
   );

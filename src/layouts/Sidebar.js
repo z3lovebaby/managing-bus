@@ -1,120 +1,140 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-const Sidebar = ({ isSidebarOpen }) => {
+import {
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Button,
+  Box,
+} from "@mui/material";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import PersonIcon from "@mui/icons-material/Person";
+import LogoutIcon from "@mui/icons-material/Logout";
+import FlagIcon from "@mui/icons-material/Flag";
+import DirectionsBusIcon from "@mui/icons-material/DirectionsBus";
+const Sidebar = ({ isSidebarOpen, role }) => {
   const { t, i18n } = useTranslation();
 
   const changeLanguage = (lang) => {
     i18n.changeLanguage(lang);
-    localStorage.setItem("i18nextLng", lang); // Lưu ngôn ngữ vào localStorage
+    localStorage.setItem("i18nextLng", lang);
   };
-  console.log(i18n); // Kiểm tra đối tượng i18n
-  console.log(i18n.changeLanguage); // Kiểm tra xem i18n.changeLanguage có phải là một hàm không
-  return (
-    <div
-      id="layoutSidenav_nav"
-      className={isSidebarOpen ? "sidebar-open" : "sidebar-closed"}
-    >
-      <nav className="sb-sidenav accordion" id="sidenavAccordion">
-        <div className="sb-sidenav-menu">
-          <div className="nav">
-            <div className="sb-sidenav-menu-heading">Core</div>
-            <a className="nav-link" href="index.html">
-              <div className="sb-nav-link-icon">
-                <i className="fas fa-tachometer-alt"></i>
-              </div>
-              Dashboard
-            </a>
-            <div className="sb-sidenav-menu-heading">Interface</div>
-            <a
-              className="nav-link collapsed"
-              href="#"
-              data-bs-toggle="collapse"
-              data-bs-target="#collapseLayouts"
-              aria-expanded="false"
-              aria-controls="collapseLayouts"
-            >
-              <div className="sb-nav-link-icon">
-                <i className="fas fa-user"></i>
-              </div>
-              Users
-              <div className="sb-sidenav-collapse-arrow">
-                <i className="fas fa-angle-down"></i>
-              </div>
-            </a>
-            <div
-              className="collapse"
-              id="collapseLayouts"
-              aria-labelledby="headingOne"
-              data-bs-parent="#sidenavAccordion"
-            >
-              <nav className="sb-sidenav-menu-nested nav">
-                <Link to="/users" className="nav-link">
-                  Add User
-                </Link>
-                <Link to="/users" className="nav-link">
-                  List Users
-                </Link>
-              </nav>
-            </div>
-            <a
-              className="nav-link collapsed"
-              href="#"
-              data-bs-toggle="collapse"
-              data-bs-target="#collapsePost"
-              aria-expanded="false"
-              aria-controls="collapseLayouts"
-            >
-              <div className="sb-nav-link-icon">
-                <i className="fas fa-columns"></i>
-              </div>
-              Lái xe
-              <div className="sb-sidenav-collapse-arrow">
-                <i className="fas fa-angle-down"></i>
-              </div>
-            </a>
-            <div
-              className="collapse"
-              id="collapsePost"
-              aria-labelledby="headingOne"
-              data-bs-parent="#sidenavAccordion"
-            >
-              <nav className="sb-sidenav-menu-nested nav">
-                <Link to="/users" className="nav-link">
-                  Add Post
-                </Link>
-                <Link to="/users" className="nav-link">
-                  List Posts
-                </Link>
-              </nav>
-            </div>
-            <div className="language-buttons">
-              <button
-                className="btn btn-success m-2"
-                onClick={() => changeLanguage("vi")}
-              >
-                <img
-                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Flag_of_Vietnam.svg/800px-Flag_of_Vietnam.svg.png"
-                  style={{ width: "24px", height: "auto" }}
-                ></img>
-                <p>Tiếng Việt</p>
-              </button>
+  const handleLinkClick = () => {
+    console.log("1233");
+    isSidebarOpen = !isSidebarOpen;
+  };
 
-              <button
-                className="btn btn-primary m-2"
-                onClick={() => changeLanguage("en")}
+  return (
+    <Drawer
+      variant="persistent"
+      anchor="left"
+      open={isSidebarOpen}
+      sx={{
+        position: "fixed", // Sidebar sẽ đè lên map
+        zIndex: 1000, // Đảm bảo Sidebar nằm trên content
+        "& .MuiDrawer-paper": {
+          width: isSidebarOpen ? 240 : 0,
+          overflow: "hidden", // Ẩn nội dung khi đóng
+          backgroundColor: "#c9f8bdd2", // Màu nền trong suốt
+          transition: "width 0.3s ease", // Hiệu ứng khi mở/đóng
+        },
+      }}
+    >
+      <Box role="presentation" sx={{ paddingTop: "64px" }}>
+        <List>
+          {/* Dashboard */}
+          <ListItem button component={Link} to="/" onClick={handleLinkClick}>
+            <ListItemIcon>
+              <DashboardIcon />
+            </ListItemIcon>
+            <ListItemText primary={t("Map")} />
+          </ListItem>
+
+          {/* Role-specific Items */}
+          {role === "manager" && (
+            <>
+              {/* Users Menu */}
+              <ListItem
+                button
+                component={Link}
+                to="/manager/user-list"
+                onClick={handleLinkClick}
               >
-                <img
-                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Flag_of_the_United_Kingdom_%281-2%29.svg/1200px-Flag_of_the_United_Kingdom_%281-2%29.svg.png"
-                  style={{ width: "24px", height: "auto" }}
-                ></img>
-                <p>English</p>
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-    </div>
+                <ListItemIcon>
+                  <PersonIcon />
+                </ListItemIcon>
+                <ListItemText primary={t("Danh sách user")} />
+              </ListItem>
+
+              {/* Posts Menu */}
+              <ListItem button component={Link} to="/manager/driver-list">
+                <ListItemIcon>
+                  <DirectionsBusIcon />
+                </ListItemIcon>
+                <ListItemText primary={t("Danh sách tài xế")} />
+              </ListItem>
+            </>
+          )}
+
+          {role === "user" && (
+            <>
+              {/* View Users */}
+              <ListItem button component={Link} to="/users/list">
+                <ListItemIcon>
+                  <PersonIcon />
+                </ListItemIcon>
+                <ListItemText primary={t("View Users")} />
+              </ListItem>
+            </>
+          )}
+
+          {/* Logout */}
+          <ListItem button component={Link} to="/logout">
+            <ListItemIcon>
+              <LogoutIcon />
+            </ListItemIcon>
+            <ListItemText primary={t("Logout")} />
+          </ListItem>
+        </List>
+
+        {/* Language Switcher */}
+        <Box display="flex" justifyContent="center" mt={2}>
+          <Button
+            onClick={() => changeLanguage("vi")}
+            startIcon={
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Flag_of_Vietnam.svg/800px-Flag_of_Vietnam.svg.png"
+                alt="Vietnamese"
+                style={{ width: "24px" }}
+              />
+            }
+            variant="contained"
+            color="success"
+            sx={{ mx: 1 }}
+          >
+            {t("Tiếng Việt")}
+          </Button>
+          <Button
+            onClick={() => changeLanguage("en")}
+            startIcon={
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Flag_of_the_United_Kingdom_%281-2%29.svg/1200px-Flag_of_the_United_Kingdom_%281-2%29.svg.png"
+                alt="English"
+                style={{ width: "24px" }}
+              />
+            }
+            variant="contained"
+            color="primary"
+            sx={{ mx: 1 }}
+          >
+            {t("English")}
+          </Button>
+        </Box>
+      </Box>
+    </Drawer>
   );
 };
 

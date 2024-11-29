@@ -11,12 +11,15 @@ class Auth:
             # fetch the user data
             user = User.query.filter_by(email=data.get('email')).first()
             if user and user.check_password(data.get('password')):
-                auth_token = user.encode_auth_token(user)
-                if auth_token:
+                auth_access_token = user.encode_auth_token(user,1)
+                auth_refresh_token = user.encode_auth_token(user,10)
+                if auth_access_token and auth_refresh_token:
                     response_object = {
                         'status': 'success',
-                        'message': 'Successfully logged in.',
-                        'Authorization': auth_token
+                        'message': 'Đăng nhập thành công.',
+                        'Authorization': auth_access_token,
+                        'refresh_token': auth_refresh_token,
+                        'role': user.admin
                     }
                     return response_object, 200
             else:
@@ -34,6 +37,31 @@ class Auth:
             }
             return response_object, 500
 
+    @staticmethod
+    def get_refresh_token(data):
+        print('data', data)
+        try:
+            #print(data.get('refresh_token'))
+            decoded_token = User.decode_auth_token(data.get('refresh_token'))
+            print('decode',decoded_token)
+            if(decoded_token):
+                user = User.query.filter_by(public_id=decoded_token.get('uuid')).first()
+                auth_access_token = user.encode_auth_token(user, 1)
+                auth_refresh_token = user.encode_auth_token(user, 10)
+                print(auth_refresh_token,auth_access_token)
+                if auth_access_token and auth_refresh_token:
+                    response_object = {
+                        'access_token': auth_access_token,
+                        'refresh_token': auth_refresh_token,
+                    }
+                    return response_object, 200
+        except Exception as e:
+            print(e)
+            response_object = {
+                'status': 'fail',
+                'message': 'Try again'
+            }
+            return response_object, 500
     @staticmethod
     def logout_user(data):
         if data:

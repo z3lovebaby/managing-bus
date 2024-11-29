@@ -31,14 +31,14 @@ class User(db.Model):
     def __repr__(self):
         return "<User '{}'>".format(self.username)
 
-    def encode_auth_token(self, user):
+    def encode_auth_token(self, user,t):
         """
         Generates the Auth Token
         :return: string
         """
         try:
             payload = {
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1, seconds=5),
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=t, seconds=5),
                 'iat': datetime.datetime.utcnow(),
                 'uuid': str(user.public_id),
                 'username': user.username
@@ -66,7 +66,7 @@ class User(db.Model):
                 return 'Token blacklisted. Please log in again.'
             else:
                 #print(payload['sub'])
-                return payload['sub']
+                return payload
         except jwt.ExpiredSignatureError:
                 return 'Signature expired. Please log in again.'
         except jwt.InvalidTokenError:
