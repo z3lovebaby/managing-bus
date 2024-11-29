@@ -14,14 +14,14 @@ class DevelopmentConfig(Config):
     # uncomment the line below to use postgres
     # SQLALCHEMY_DATABASE_URI = postgres_local_base
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:link612@localhost:5432/manBusDB'
+    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:1234@localhost:5433/manBusDB'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
 class TestingConfig(Config):
     DEBUG = True
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:link612@localhost:5432/manBusDB'
+    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:1234@localhost:5433/manBusDB'
     PRESERVE_CONTEXT_ON_EXCEPTION = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
