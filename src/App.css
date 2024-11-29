@@ -28,7 +28,7 @@
   /* Added padding to avoid overlap with navbar */
 }
 
-#layoutSidenav_nav {
+/* #layoutSidenav_nav {
   width: 0;
   position: fixed;
   left: 0;
@@ -46,11 +46,13 @@
 #layoutSidenav_nav.sidebar-closed {
   width: 0 !important;
   display: none;
+} */
+.qluser, .qldriver{
+  margin: 3.5rem 0.6rem;
 }
-
 .sb-sidenav,
 .navbar {
-  background-color: #c9f8bdd2;
+  background-color: #37f408;
 }
 .navbar{
   position: fixed;

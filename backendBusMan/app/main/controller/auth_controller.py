@@ -19,6 +19,18 @@ class UserLogin(Resource):
         # get the post data
         post_data = request.json
         return Auth.login_user(data=post_data)
+@api.route('/refresh-token')
+class UserLogin(Resource):
+    """
+        User Login Resource
+    """
+    @api.doc('Auth refresh token')
+    @api.expect(api.parser().add_argument('refresh_token', type=str, required=True, location='json'), validate=True)
+    # @api.expect(String, validate=True)
+    def post(self):
+        # get the post data
+        post_data = request.json
+        return Auth.get_refresh_token(data=post_data)
 
 
 @api.route('/logout')

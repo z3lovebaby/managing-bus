@@ -11,7 +11,6 @@ const override = {
   right: "0",
   bottom: "0",
   backgroundColor: "rgb(0 0 0 / 30%)",
-  zIndex: "9999",
 };
 
 const Layout = () => {

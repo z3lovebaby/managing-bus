@@ -74,30 +74,16 @@ const Register = () => {
       //request register api
       console.log("request register api");
       dispatch(actions.controlLoading(true));
-      requestApi("/register", "POST", DKData)
+      requestApi("/user/register", "POST", DKData)
         .then((res) => {
           console.log(res);
-          // Kiểm tra nếu phản hồi trả về có status là thành công
-          if (res.status === 200) {
-            console.log("Response:", res);
-            dispatch(actions.controlLoading(false));
-            toast.success("Đăng kí thành công", {
-              position: "top-right",
-              autoClose: 3000,
-            });
-            navigate("/login");
-          } else {
-            // Trường hợp API trả về lỗi, nhưng vẫn trả về phản hồi (ví dụ 400)
-            console.error("Error response:", res);
-            toast.error(
-              res.message || "Có lỗi xảy ra trong quá trình đăng kí",
-              {
-                position: "top-center",
-                autoClose: 3000,
-              }
-            );
-            dispatch(actions.controlLoading(false));
-          }
+          console.log("Response:", res);
+          dispatch(actions.controlLoading(false));
+          toast.success(res.data.message, {
+            position: "top-right",
+            autoClose: 3000,
+          });
+          navigate("/login");
         })
         .catch((error) => {
           // Xử lý các lỗi do kết nối hoặc không có phản hồi từ server
