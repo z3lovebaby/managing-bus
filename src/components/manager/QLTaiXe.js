@@ -61,42 +61,7 @@ const style = {
   boxShadow: 24,
   p: 4,
 };
-const managers = [
-  { code: "AD", label: "Andorra", phone: "376" },
-  {
-    code: "AE",
-    label: "United Arab Emirates",
-    phone: "971",
-  },
-  { code: "AF", label: "Afghanistan", phone: "93" },
-  {
-    code: "AG",
-    label: "Antigua and Barbuda",
-    phone: "1-268",
-  },
-  { code: "AI", label: "Anguilla", phone: "1-264" },
-  { code: "AL", label: "Albania", phone: "355" },
-  { code: "AM", label: "Armenia", phone: "374" },
-  { code: "AO", label: "Angola", phone: "244" },
-  { code: "AQ", label: "Antarctica", phone: "672" },
-  { code: "AR", label: "Argentina", phone: "54" },
-  { code: "AS", label: "American Samoa", phone: "1-684" },
-  { code: "AT", label: "Austria", phone: "43" },
-  {
-    code: "AU",
-    label: "Australia",
-    phone: "61",
-    suggested: true,
-  },
-  { code: "AW", label: "Aruba", phone: "297" },
-  { code: "AX", label: "Alland Islands", phone: "358" },
-  { code: "AZ", label: "Azerbaijan", phone: "994" },
-  {
-    code: "BA",
-    label: "Bosnia and Herzegovina",
-    phone: "387",
-  },
-];
+let drivers = [];
 let manager = {
   name: "Nguyen H P",
   username: "phunh12345678",
@@ -139,7 +104,34 @@ export default function QLTaiXe() {
 
   const handleConfirmDelete = () => {
     console.log("Deleted:", selectedItem);
-    // Thực hiện API xóa hoặc xử lý xóa
+    try {
+      dispatch(actions.controlLoading(true));
+      requestApi("/manager/delete-driver", "POST", selectedItem).then((res) => {
+        console.log(res);
+        toast.success(res.data.message, {
+          position: "top-right",
+          autoClose: 3000,
+        });
+        fetchData();
+        dispatch(actions.controlLoading(false));
+      });
+    } catch (error) {
+      dispatch(actions.controlLoading(false));
+      console.log(error);
+      if (typeof error.response !== "undefined") {
+        if (error.response.status !== 201) {
+          toast.error(error.response.data.message, {
+            position: "top-right",
+            autoClose: 3000,
+          });
+        }
+      } else {
+        toast.error("Server is down. Please try again!", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+      }
+    }
     setDeleteModalOpen(false);
   };
 
@@ -190,7 +182,8 @@ export default function QLTaiXe() {
       dispatch(actions.controlLoading(true));
       const response = await requestApi("/manager/get-all-driver", "GET");
       console.log(response.data);
-      setRows(response.data); // Giả sử API trả về một mảng managers
+      drivers = response.data;
+      setRows(response.data); // Giả sử API trả về một mảng drivers
       dispatch(actions.controlLoading(false));
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -217,17 +210,20 @@ export default function QLTaiXe() {
     } else if (!phonePattern.test(newData.phone)) {
       errors.phone = "Số điện thoại không hợp lệ";
     }
-    if (newData.username?.length < 8) {
+    if (!isEditMode && newData.username?.length < 8) {
       errors.username = "Username tối thiểu 8 kí tự";
     }
-    if (newData.password === "" || newData.password === undefined) {
+    if (
+      !isEditMode &&
+      (newData.password === "" || newData.password === undefined)
+    ) {
       errors.password = "Hãy nhập mật khẩu";
     }
-    if (newData.blx === "" || newData.blx === undefined) {
-      errors.password = "Hãy nhập số bằng lái xe";
+    if (!isEditMode && (newData.blx === "" || newData.blx === undefined)) {
+      errors.blx = "Hãy nhập số bằng lái xe";
     }
     if (newData.bus_id === "" || newData.bus_id === undefined) {
-      errors.password = "Chọn xe cho tài xế";
+      errors.bus = "Chọn xe cho tài xế";
     }
 
     if (Object.keys(errors).length > 0) {
@@ -243,12 +239,44 @@ export default function QLTaiXe() {
   const handleSubmit = () => {
     console.log("TT Tài xế:", newData);
     let valid = validateForm();
-    console.log(formErrors);
+    console.log(formErrors, valid);
     if (valid) {
       if (isEditMode) {
         // Xử lý cập nhật
-        console.log("Updating Manager:", newData);
-        toast.success("Manager updated successfully!");
+        console.log("Updating tài xe:", newData);
+        console.log("request update tx");
+        dispatch(actions.controlLoading(true));
+        requestApi("/manager/update-driver", "POST", newData)
+          .then((res) => {
+            console.log(res);
+            toast.success(res.data.message, {
+              position: "top-right",
+              autoClose: 3000,
+            });
+            fetchData();
+            dispatch(actions.controlLoading(false));
+            setIsSubmitted(false);
+            setFormErrors({});
+            handleClose();
+            return;
+          })
+          .catch((err) => {
+            dispatch(actions.controlLoading(false));
+            console.log(err);
+            if (typeof err.response !== "undefined") {
+              if (err.response.status !== 201) {
+                toast.error(err.response.data.message, {
+                  position: "top-right",
+                  autoClose: 3000,
+                });
+              }
+            } else {
+              toast.error("Server is down. Please try again!", {
+                position: "top-right",
+                autoClose: 3000,
+              });
+            }
+          });
       } else {
         //xu ly them moi
         console.log("request thêm mới tài xế api");
@@ -288,6 +316,36 @@ export default function QLTaiXe() {
     }
     setIsSubmitted(true);
   };
+  const handleSearch = (event, value) => {
+    if (!value) {
+      setRows(drivers); // Reset khi không nhập gì
+      return;
+    }
+
+    const searchTerm = value.toLowerCase();
+    const filtered = drivers.filter(
+      (driver) =>
+        driver.username.toLowerCase().includes(searchTerm) ||
+        driver.name.toLowerCase().includes(searchTerm) ||
+        driver.phone.includes(searchTerm)
+    );
+    setRows(filtered);
+  };
+  const handleSelect = (event, value) => {
+    if (value) {
+      const { username, name, phone } = value; // Truy cập các biến riêng lẻ
+      const filtered = drivers.filter(
+        (user) =>
+          user.username === username &&
+          user.name === name &&
+          user.phone === phone
+      );
+      console.log("val", filtered);
+      setRows(filtered);
+    } else {
+      setRows(drivers); // Reset khi không chọn gì
+    }
+  };
   return (
     <div className="qldriver">
       <Typography variant="h4" component="h2">
@@ -304,10 +362,12 @@ export default function QLTaiXe() {
         </Button>
         <Autocomplete
           sx={{ width: 500 }}
-          options={managers}
+          options={drivers}
           getOptionLabel={(option) =>
-            `${option.label} (${option.code}) +${option.phone}`
+            `${option.username} (${option.name}) - ${option.phone}`
           }
+          onInputChange={handleSearch}
+          onChange={handleSelect} // Xử lý khi chọn
           renderInput={(params) => (
             <TextField {...params} label="Tra cứu tài xế" />
           )}
@@ -318,9 +378,9 @@ export default function QLTaiXe() {
           <TableHead>
             <TableRow>
               <StyledTableCell>Full name</StyledTableCell>
-              <StyledTableCell align="right">Role</StyledTableCell>
-              <StyledTableCell align="center">Mail</StyledTableCell>
-              <StyledTableCell align="right">Phone</StyledTableCell>
+              <StyledTableCell align="left">Mail</StyledTableCell>
+              <StyledTableCell align="left">Phone</StyledTableCell>
+              <StyledTableCell align="left">Bằng lái xe</StyledTableCell>
               <StyledTableCell align="center">Actions</StyledTableCell>
             </TableRow>
           </TableHead>
@@ -330,9 +390,9 @@ export default function QLTaiXe() {
                 <StyledTableCell component="th" scope="row">
                   {row.name}
                 </StyledTableCell>
-                <StyledTableCell align="right">{row.calories}</StyledTableCell>
                 <StyledTableCell align="left">{row.email}</StyledTableCell>
-                <StyledTableCell align="right">{row.phone}</StyledTableCell>
+                <StyledTableCell align="left">{row.phone}</StyledTableCell>
+                <StyledTableCell align="left">{row.blx}</StyledTableCell>
                 <StyledTableCell align="center">
                   <div>
                     <Button
@@ -349,7 +409,7 @@ export default function QLTaiXe() {
                       variant="contained"
                       color="error"
                       size="small"
-                      onClick={() => handleDeleteClick(row.name)}
+                      onClick={() => handleDeleteClick(row)}
                     >
                       Delete
                     </Button>
@@ -359,7 +419,7 @@ export default function QLTaiXe() {
                       open={deleteModalOpen}
                       onClose={() => setDeleteModalOpen(false)}
                       onConfirm={handleConfirmDelete}
-                      message={`Bạn có chắc chắn muốn xóa ${selectedItem}?`}
+                      message={`Bạn có chắc chắn muốn xóa ${selectedItem?.name}?`}
                     />
                   </div>
                 </StyledTableCell>
@@ -385,6 +445,7 @@ export default function QLTaiXe() {
                 label="Full Name"
                 name="name"
                 value={newData.name}
+                disabled={isEditMode}
                 onChange={handleInputChange}
               />
             </Grid2>
@@ -394,6 +455,7 @@ export default function QLTaiXe() {
                 label="Username"
                 name="username"
                 value={newData.username}
+                disabled={isEditMode}
                 onChange={handleInputChange}
               />
               {formErrors.username && (
@@ -444,6 +506,7 @@ export default function QLTaiXe() {
                 label="Bằng lái xe"
                 name="blx"
                 value={newData.blx}
+                disabled={isEditMode}
                 onChange={handleInputChange}
               />
               {formErrors.blx && (

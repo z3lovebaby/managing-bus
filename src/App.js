@@ -36,14 +36,13 @@ function App() {
           }
         >
           <Route path="/" element={<Map />} />
+          <Route path="/manager/user-list" element={<QLNguoiDung />} />
+          <Route path="/manager/driver-list" element={<QLTaiXe />} />
         </Route>
         <Route element={<PublicRoutes />}>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Route>
-
-        <Route path="/manager/user-list" element={<QLNguoiDung />} />
-        <Route path="/manager/driver-list" element={<QLTaiXe />} />
 
         {/* Private Routes */}
         <Route element={<PrivateRoutes />}>

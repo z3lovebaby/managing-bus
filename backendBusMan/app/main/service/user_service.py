@@ -55,7 +55,7 @@ def save_changes(data):
 def generate_token(user):
     try:
         # generate the auth token
-        auth_token = user.encode_auth_token(user)
+        auth_token = user.encode_auth_token(user,1)
         response_object = {
             'status': 'success',
             'message': 'Successfully registered.',

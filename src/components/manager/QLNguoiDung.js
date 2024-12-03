@@ -39,17 +39,6 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-function createData(name, calories, fat, carbs, protein) {
-  return { name, calories, fat, carbs, protein };
-}
-
-// const rows = [
-//   createData("Frozen yoghurt", 159, 6.0, 24, 4.0),
-//   createData("Ice cream sandwich", 123, 9.0, 37, 4.3),
-//   createData("Eclair", 262, 16.0, 24, 6.0),
-//   createData("Cupcake", 305, 3.7, 67, 4.3),
-//   createData("Gingerbread", 356, 16.0, 49, 3.9),
-// ];
 const style = {
   position: "absolute",
   top: "40%",
@@ -61,42 +50,7 @@ const style = {
   boxShadow: 24,
   p: 4,
 };
-const managers = [
-  { code: "AD", label: "Andorra", phone: "376" },
-  {
-    code: "AE",
-    label: "United Arab Emirates",
-    phone: "971",
-  },
-  { code: "AF", label: "Afghanistan", phone: "93" },
-  {
-    code: "AG",
-    label: "Antigua and Barbuda",
-    phone: "1-268",
-  },
-  { code: "AI", label: "Anguilla", phone: "1-264" },
-  { code: "AL", label: "Albania", phone: "355" },
-  { code: "AM", label: "Armenia", phone: "374" },
-  { code: "AO", label: "Angola", phone: "244" },
-  { code: "AQ", label: "Antarctica", phone: "672" },
-  { code: "AR", label: "Argentina", phone: "54" },
-  { code: "AS", label: "American Samoa", phone: "1-684" },
-  { code: "AT", label: "Austria", phone: "43" },
-  {
-    code: "AU",
-    label: "Australia",
-    phone: "61",
-    suggested: true,
-  },
-  { code: "AW", label: "Aruba", phone: "297" },
-  { code: "AX", label: "Alland Islands", phone: "358" },
-  { code: "AZ", label: "Azerbaijan", phone: "994" },
-  {
-    code: "BA",
-    label: "Bosnia and Herzegovina",
-    phone: "387",
-  },
-];
+let users = [];
 let manager = {
   name: "Nguyen H P",
   username: "phunh12345678",
@@ -105,6 +59,7 @@ let manager = {
   phone: "0987654321",
 };
 export default function QLNguoiDung() {
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [rows, setRows] = useState([]);
   const [formErrors, setFormErrors] = useState({});
   const [selectedManager, setSelectedManager] = useState(null);
@@ -126,9 +81,36 @@ export default function QLNguoiDung() {
     setDeleteModalOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     console.log("Deleted:", selectedItem);
-    // Thực hiện API xóa hoặc xử lý xóa
+    try {
+      dispatch(actions.controlLoading(true));
+      requestApi("/manager/delete-user", "POST", selectedItem).then((res) => {
+        console.log(res);
+        toast.success(res.data.message, {
+          position: "top-right",
+          autoClose: 3000,
+        });
+        fetchData();
+        dispatch(actions.controlLoading(false));
+      });
+    } catch (error) {
+      dispatch(actions.controlLoading(false));
+      console.log(error);
+      if (typeof error.response !== "undefined") {
+        if (error.response.status !== 201) {
+          toast.error(error.response.data.message, {
+            position: "top-right",
+            autoClose: 3000,
+          });
+        }
+      } else {
+        toast.error("Server is down. Please try again!", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+      }
+    }
     setDeleteModalOpen(false);
   };
 
@@ -167,14 +149,45 @@ export default function QLNguoiDung() {
   const fetchData = async () => {
     try {
       dispatch(actions.controlLoading(true));
-      const response = await requestApi("/manager/", "GET");
+      const response = await requestApi("/manager/get-all-user", "GET");
       console.log(response.data.data);
-      setRows(response.data.data); // Giả sử API trả về một mảng managers
+      users = response.data.data;
+      setRows(response.data.data); // Giả sử API trả về một mảng users
       dispatch(actions.controlLoading(false));
     } catch (error) {
       console.error("Error fetching data:", error);
       dispatch(actions.controlLoading(false));
       toast.error("Không thể tải dữ liệu", { position: "top-right" });
+    }
+  };
+  const handleSearch = (event, value) => {
+    if (!value) {
+      setRows(users); // Reset khi không nhập gì
+      return;
+    }
+
+    const searchTerm = value.toLowerCase();
+    const filtered = users.filter(
+      (user) =>
+        user.username.toLowerCase().includes(searchTerm) ||
+        user.name.toLowerCase().includes(searchTerm) ||
+        user.phone.includes(searchTerm)
+    );
+    setRows(filtered);
+  };
+  const handleSelect = (event, value) => {
+    if (value) {
+      const { username, name, phone } = value; // Truy cập các biến riêng lẻ
+      const filtered = users.filter(
+        (user) =>
+          user.username === username &&
+          user.name === name &&
+          user.phone === phone
+      );
+      console.log("val", filtered);
+      setRows(filtered);
+    } else {
+      setRows(users); // Reset khi không chọn gì
     }
   };
 
@@ -186,10 +199,12 @@ export default function QLNguoiDung() {
       <Box sx={{ display: "flex", justifyContent: "end", mt: 2 }}>
         <Autocomplete
           sx={{ width: 500, mb: 2 }}
-          options={managers}
+          options={users}
           getOptionLabel={(option) =>
-            `${option.label} (${option.code}) +${option.phone}`
+            `${option.username} (${option.name}) - ${option.phone}`
           }
+          onInputChange={handleSearch}
+          onChange={handleSelect} // Xử lý khi chọn
           renderInput={(params) => (
             <TextField {...params} label="Tìm người dùng" />
           )}
@@ -200,14 +215,14 @@ export default function QLNguoiDung() {
           <TableHead>
             <TableRow>
               <StyledTableCell>Tên người dùng</StyledTableCell>
-              <StyledTableCell align="center">EMail</StyledTableCell>
+              <StyledTableCell align="left">EMail</StyledTableCell>
               <StyledTableCell align="right">Số điện thoại</StyledTableCell>
               <StyledTableCell align="center">Actions</StyledTableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {rows.map((row) => (
-              <StyledTableRow key={row.name}>
+              <StyledTableRow key={row.username}>
                 <StyledTableCell component="th" scope="row">
                   {row.name}
                 </StyledTableCell>
@@ -229,7 +244,7 @@ export default function QLNguoiDung() {
                       variant="contained"
                       color="error"
                       size="small"
-                      onClick={() => handleDeleteClick(row.name)}
+                      onClick={() => handleDeleteClick(row)}
                     >
                       Delete
                     </Button>
@@ -239,7 +254,7 @@ export default function QLNguoiDung() {
                       open={deleteModalOpen}
                       onClose={() => setDeleteModalOpen(false)}
                       onConfirm={handleConfirmDelete}
-                      message={`Bạn có chắc chắn muốn xóa ${selectedItem}?`}
+                      message={`Bạn có chắc chắn muốn xóa ${selectedItem?.name}?`}
                     />
                   </div>
                 </StyledTableCell>
