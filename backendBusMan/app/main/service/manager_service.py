@@ -152,8 +152,7 @@ def update_driver(data):
             "message": f"Cập nhật thất bại.",
         }, 500
 
-def update_manager:
-    return
+
 def get_all_manager():
     return User.query.filter_by(isDeleted=False,role = 3).all()
 def get_all_user():
