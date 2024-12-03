@@ -1,51 +1,50 @@
-from flask import Blueprint, request, jsonify
-from services import BusService
-from model import BusStatus, db
-from sqlalchemy.orm import Session
+from flask import request, jsonify
+from flask_restx import Resource, Namespace
+from app.main.service.bus_service import get_all_buses, get_bus_by_id, create_bus, update_bus, delete_bus
+from app.main.model.bus import Bus
+from app.main.model.bus import BusCreate, BusOut, BusUpdate
+from geoalchemy2 import WKTElement
 
-bus_router = Blueprint('bus_router', __name__)
 
-@bus_router.route('/buses/', methods=['POST'])
-def create_bus():
-    data = request.get_json()
-    plate_number = data['plate_number']
-    name = data.get('name', '')
-    model = data.get('model', '')
-    route_id = data['route_id']
-    current_location = data['current_location']
-    
-    bus_service = BusService(db.session)
-    bus = bus_service.create_bus(plate_number, name, model, route_id, current_location)
-    return jsonify({"message": "Bus created", "bus": bus}), 201
+api = Namespace('bus', description='Bus related operations')
 
-@bus_router.route('/buses/<int:bus_id>', methods=['GET'])
-def get_bus(bus_id: int):
-    bus_service = BusService(db.session)
-    bus = bus_service.get_bus_by_id(bus_id)
-    if not bus:
-        return jsonify({"message": "Bus not found"}), 404
-    return jsonify({"bus": bus})
+@api.route('/')
+class BusList(Resource):
+    @api.doc('list_of_all_buses')
+    def get(self):
+        """List all buses"""
+        buses = get_all_buses()
+        return {"status": "success", "data": buses}
 
-@bus_router.route('/buses/', methods=['GET'])
-def get_all_buses():
-    bus_service = BusService(db.session)
-    buses = bus_service.get_all_buses()
-    return jsonify({"buses": buses})
+    @api.doc('create_new_bus')
+    def post(self):
+        """Create a new bus"""
+        try:
+            data = BusCreate.parse_obj(request.json)  # Pydantic validation
+            return create_bus(data)
+        except Exception as e:
+            return {"status": "fail", "message": str(e)}
 
-@bus_router.route('/buses/<int:bus_id>/status/', methods=['PUT'])
-def update_bus_status(bus_id: int):
-    data = request.get_json()
-    status = BusStatus[data['status']]
-    bus_service = BusService(db.session)
-    bus = bus_service.update_bus_status(bus_id, status)
-    if not bus:
-        return jsonify({"message": "Bus not found"}), 404
-    return jsonify({"message": "Bus status updated", "bus": bus})
+@api.route('/<int:bus_id>')
+class BusDetail(Resource):
+    @api.doc('get_bus_by_id')
+    def get(self, bus_id):
+        """Get a bus by ID"""
+        bus = get_bus_by_id(bus_id)
+        if bus:
+            return {"status": "success", "data": bus}
+        return {"status": "fail", "message": "Bus not found."}
 
-@bus_router.route('/buses/<int:bus_id>', methods=['DELETE'])
-def delete_bus(bus_id: int):
-    bus_service = BusService(db.session)
-    success = bus_service.delete_bus(bus_id)
-    if not success:
-        return jsonify({"message": "Bus not found"}), 404
-    return jsonify({"message": "Bus deleted"}), 200
+    @api.doc('update_bus')
+    def put(self, bus_id):
+        """Update an existing bus"""
+        try:
+            data = BusUpdate.parse_obj(request.json)  # Pydantic validation
+            return update_bus(bus_id, data)
+        except Exception as e:
+            return {"status": "fail", "message": str(e)}
+
+    @api.doc('delete_bus')
+    def delete(self, bus_id):
+        """Delete a bus"""
+        return delete_bus(bus_id)
