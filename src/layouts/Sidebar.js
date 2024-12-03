@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -13,42 +13,43 @@ import {
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import PersonIcon from "@mui/icons-material/Person";
 import LogoutIcon from "@mui/icons-material/Logout";
-import FlagIcon from "@mui/icons-material/Flag";
 import DirectionsBusIcon from "@mui/icons-material/DirectionsBus";
-const Sidebar = ({ isSidebarOpen, role }) => {
+import PeopleIcon from "@mui/icons-material/People";
+import AltRouteIcon from "@mui/icons-material/AltRoute";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+const Sidebar = ({ drawerOpen, toggleDrawer, role }) => {
   const { t, i18n } = useTranslation();
 
   const changeLanguage = (lang) => {
     i18n.changeLanguage(lang);
     localStorage.setItem("i18nextLng", lang);
   };
-  const handleLinkClick = () => {
-    console.log("1233");
-    isSidebarOpen = !isSidebarOpen;
-  };
 
   return (
     <Drawer
-      variant="persistent"
+      variant="temporary"
       anchor="left"
-      open={isSidebarOpen}
+      open={drawerOpen}
+      onClose={() => toggleDrawer(false)}
       sx={{
-        position: "fixed", // Sidebar sẽ đè lên map
-        zIndex: 1000, // Đảm bảo Sidebar nằm trên content
         "& .MuiDrawer-paper": {
-          width: isSidebarOpen ? 240 : 0,
-          overflow: "hidden", // Ẩn nội dung khi đóng
-          backgroundColor: "#c9f8bdd2", // Màu nền trong suốt
-          transition: "width 0.3s ease", // Hiệu ứng khi mở/đóng
+          width: 240,
+          position: "relative",
+          transition: "width 0.3s ease",
         },
       }}
     >
-      <Box role="presentation" sx={{ paddingTop: "64px" }}>
+      <Box
+        role="presentation"
+        onClick={() => toggleDrawer(false)}
+        onKeyDown={() => toggleDrawer(false)}
+        sx={{ paddingTop: "64px" }}
+      >
         <List>
           {/* Dashboard */}
-          <ListItem button component={Link} to="/" onClick={handleLinkClick}>
+          <ListItem button component={Link} to="/">
             <ListItemIcon>
-              <DashboardIcon />
+              <LocationOnIcon />
             </ListItemIcon>
             <ListItemText primary={t("Map")} />
           </ListItem>
@@ -57,24 +58,35 @@ const Sidebar = ({ isSidebarOpen, role }) => {
           {role === "manager" && (
             <>
               {/* Users Menu */}
-              <ListItem
-                button
-                component={Link}
-                to="/manager/user-list"
-                onClick={handleLinkClick}
-              >
+              <ListItem button component={Link} to="/manager/user-list">
                 <ListItemIcon>
                   <PersonIcon />
                 </ListItemIcon>
                 <ListItemText primary={t("Danh sách user")} />
               </ListItem>
 
-              {/* Posts Menu */}
+              {/* Drivers Menu */}
               <ListItem button component={Link} to="/manager/driver-list">
+                <ListItemIcon>
+                  <PeopleIcon />
+                </ListItemIcon>
+                <ListItemText primary={t("Danh sách tài xế")} />
+              </ListItem>
+
+              {/* Xe */}
+              <ListItem button component={Link} to="/manager/bus">
                 <ListItemIcon>
                   <DirectionsBusIcon />
                 </ListItemIcon>
-                <ListItemText primary={t("Danh sách tài xế")} />
+                <ListItemText primary={t("Quản lý xe")} />
+              </ListItem>
+
+              {/* Tuyen */}
+              <ListItem button component={Link} to="/manager/route">
+                <ListItemIcon>
+                  <AltRouteIcon />
+                </ListItemIcon>
+                <ListItemText primary={t("Quản lý tuyến đường")} />
               </ListItem>
             </>
           )}

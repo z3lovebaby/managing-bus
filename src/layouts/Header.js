@@ -1,94 +1,156 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import AppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+import Typography from "@mui/material/Typography";
+import IconButton from "@mui/material/IconButton";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import InputBase from "@mui/material/InputBase";
+import Button from "@mui/material/Button";
+import Divider from "@mui/material/Divider";
+import { styled, alpha } from "@mui/material/styles";
+import AccountCircle from "@mui/icons-material/AccountCircle";
+import SearchIcon from "@mui/icons-material/Search";
+import MenuIcon from "@mui/icons-material/Menu";
+
+const Search = styled("div")(({ theme }) => ({
+  position: "relative",
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor: alpha(theme.palette.common.white, 0.15),
+  "&:hover": {
+    backgroundColor: alpha(theme.palette.common.white, 0.25),
+  },
+  marginLeft: 0,
+  width: "100%",
+  [theme.breakpoints.up("sm")]: {
+    marginLeft: theme.spacing(1),
+    width: "auto",
+  },
+}));
+
+const SearchIconWrapper = styled("div")(({ theme }) => ({
+  padding: theme.spacing(0, 2),
+  height: "100%",
+  position: "absolute",
+  pointerEvents: "none",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+}));
+
+const StyledInputBase = styled(InputBase)(({ theme }) => ({
+  color: "inherit",
+  "& .MuiInputBase-input": {
+    padding: theme.spacing(1, 1, 1, 0),
+    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
+    transition: theme.transitions.create("width"),
+    width: "100%",
+    [theme.breakpoints.up("sm")]: {
+      width: "12ch",
+      "&:focus": {
+        width: "20ch",
+      },
+    },
+  },
+}));
+
 const Header = ({ toggleSidebar }) => {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+
   const onHandleLogout = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     navigate("/login");
   };
+
   const onHandleLogIn = () => {
     navigate("/login");
   };
+
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
   useEffect(() => {
-    let token = localStorage.getItem("access_token") || false;
-    if (!token) {
-      setIsLoggedIn(false);
-    } else setIsLoggedIn(true);
-  });
+    const token = localStorage.getItem("access_token") || false;
+    setIsLoggedIn(!!token);
+  }, []);
 
   return (
-    <nav className="sb-topnav navbar">
-      <a className="navbar-brand ps-3" href="/">
-        <i class="fa fa-bus" aria-hidden="true"></i> Managing Bus
-      </a>
-      <button
-        className="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0"
-        id="sidebarToggle"
-        onClick={toggleSidebar}
-      >
-        <i className="fas fa-bars"></i>
-      </button>
-      <form className="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0">
-        <div className="input-group">
-          <input
-            className="form-control"
-            type="text"
-            placeholder="Search for..."
-            aria-label="Search for..."
-            aria-describedby="btnNavbarSearch"
+    <AppBar
+      position="fixed"
+      sx={{
+        zIndex: 2000, // Higher than default drawer zIndex
+      }}
+    >
+      <Toolbar>
+        <IconButton
+          edge="start"
+          color="inherit"
+          aria-label="menu"
+          onClick={toggleSidebar}
+        >
+          <MenuIcon />
+        </IconButton>
+        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <i className="fa fa-bus" aria-hidden="true"></i> Tìm Bus
+        </Typography>
+        <Search>
+          <SearchIconWrapper>
+            <SearchIcon />
+          </SearchIconWrapper>
+          <StyledInputBase
+            placeholder="Search…"
+            inputProps={{ "aria-label": "search" }}
           />
-          <button
-            className="btn btn-primary"
-            id="btnNavbarSearch"
-            type="button"
-          >
-            <i className="fas fa-search"></i>
-          </button>
-        </div>
-      </form>
-      {!isLoggedIn ? (
-        <button className="btn btn-primary" onClick={onHandleLogIn}>
-          Đănng nhập
-        </button>
-      ) : (
-        <ul className="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
-          <li className="nav-item dropdown">
-            <a
-              className="nav-link dropdown-toggle"
-              id="navbarDropdown"
-              role="button"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-              href="#"
-              onClick={(e) => e.preventDefault()} // Prevents page jump
+        </Search>
+        {!isLoggedIn ? (
+          <Button color="inherit" onClick={onHandleLogIn}>
+            Đăng nhập
+          </Button>
+        ) : (
+          <div>
+            <IconButton
+              size="large"
+              edge="end"
+              color="inherit"
+              aria-controls="menu-appbar"
+              aria-haspopup="true"
+              onClick={handleMenuOpen}
             >
-              <i className="fas fa-user fa-fw"></i>
-            </a>
-            <ul
-              className="dropdown-menu dropdown-menu-end"
-              aria-labelledby="navbarDropdown"
+              <AccountCircle />
+            </IconButton>
+            <Menu
+              id="menu-appbar"
+              anchorEl={anchorEl}
+              anchorOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+              keepMounted
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+              open={open}
+              onClose={handleMenuClose}
             >
-              <li>
-                <a className="dropdown-item" href="#!">
-                  Thông tin cá nhân
-                </a>
-              </li>
-              <li>
-                <hr className="dropdown-divider" />
-              </li>
-              <li>
-                <button className="dropdown-item" onClick={onHandleLogout}>
-                  Đăng xuất
-                </button>
-              </li>
-            </ul>
-          </li>
-        </ul>
-      )}
-    </nav>
+              <MenuItem onClick={handleMenuClose}>Thông tin cá nhân</MenuItem>
+              <Divider />
+              <MenuItem onClick={onHandleLogout}>Đăng xuất</MenuItem>
+            </Menu>
+          </div>
+        )}
+      </Toolbar>
+    </AppBar>
   );
 };
 

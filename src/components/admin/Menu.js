@@ -34,7 +34,7 @@ export default function Menu() {
 
   const sideNavItems = [
     { text: "Dashboard", icon: <InboxIcon />, link: "/admin/admindb" },
-    { text: "User", icon: <PersonIcon />, link: "/admin/qluser" },
+    { text: "Quản lý manager", icon: <PersonIcon />, link: "/admin/qluser" },
     { text: "Logout", icon: <MailIcon />, link: "/" },
   ];
 

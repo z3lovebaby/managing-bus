@@ -23,7 +23,7 @@ class Driver(db.Model):
 
     # You can also define the relationship between Driver and Bus for easy access
     user = db.relationship('User', backref='drivers', lazy=True)
-    status = db.Column(db.String(10), unique=True, nullable=False)
+    status = db.Column(db.String(10), nullable=False)
 
     def __repr__(self):
         return "<Driver '{}'>".format(self.license_number)

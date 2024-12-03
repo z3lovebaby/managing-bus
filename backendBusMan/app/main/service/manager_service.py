@@ -1,6 +1,7 @@
 import uuid
 import datetime
 
+from flask_restx.inputs import email
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload
 
@@ -28,6 +29,7 @@ def create(data):
             name = pascal_case_name,
             phone=data['phone'],
             admin=False,
+            role = 3,
             username=data['username'],
             password=data['password'],
             registered_on=datetime.datetime.utcnow()
@@ -44,50 +46,159 @@ def create(data):
             'message': 'User already exists. Try again.',
         }
         return response_object, 409
+
+
 def create_driver(data):
+    # Kiểm tra xem User đã tồn tại dựa trên email, phone, hoặc username
     user = User.query.filter(
         or_(
-            User.email == data['email'],
-            User.phone == data['phone'],
-            User.username == data['username']
+            User.email == data["email"],
+            User.phone == data["phone"],
+            User.username == data["username"],
         )
     ).first()
-    if not user:
-        pascal_case_name = to_pascal_case(data['name'])
-        new_user = User(
-            public_id=str(uuid.uuid4()),
-            email=data['email'],
-            name = pascal_case_name,
-            phone=data['phone'],
-            admin=False,
-            username=data['username'],
-            password=data['password'],
-            registered_on=datetime.datetime.utcnow()
-        )
-        save_changes(new_user)
+
+    tx = Driver.query.filter_by(license_number=data["blx"]).first()
+    if user:
+        return {
+            "status": "fail",
+            "message": "User already exists. Use another info to create a driver account.",
+        }, 409
+    if tx:
+        return {
+            "status": "fail",
+            "message": "Thông tin tài xế đã tồn tại.",
+        }, 409
+
+    # Nếu cả user và tx chưa tồn tại, tạo mới
+    pascal_case_name = to_pascal_case(data["name"])
+    new_user = User(
+        public_id=str(uuid.uuid4()),
+        email=data["email"],
+        name=pascal_case_name,
+        phone=data["phone"],
+        admin=False,
+        role=2,
+        username=data["username"],
+        password=data["password"],
+        registered_on=datetime.datetime.utcnow(),
+    )
+    save_changes(new_user)
+
+    try:
+        # Tạo Driver
         new_driver = Driver(
-            license_number=data['blx'],
-            bus_id=data['bus_id'],
-            status='active',
-            user_id = new_user.id
+            license_number=data["blx"],
+            bus_id=data["bus_id"],
+            status="active",
+            user_id=new_user.id,
         )
         save_changes(new_driver)
-        response_object = {
-            'status': 'success',
-            'message': 'Đăng kí tài xế thành công.',
-        }
-        return response_object, 201
-    else:
-        response_object = {
-            'status': 'fail',
-            'message': 'User already exists. Using another info to create driver account.',
-        }
-        return response_object, 409
+    except Exception as e:
+        # Nếu lỗi xảy ra khi thêm driver, rollback user đã thêm trước đó
+        db.session.rollback()  # Đảm bảo hủy tất cả các thay đổi trong phiên
+        User.query.filter_by(id=new_user.id).delete()  # Xóa User vừa thêm
+        db.session.commit()
+        return {
+            "status": "fail",
+            "message": "Lỗi khi thêm tài xế, vui lòng thử lại",
+        }, 500
+
+    return {
+        "status": "success",
+        "message": "Đăng kí tài xế thành công.",
+    }, 201
+
+def update_driver(data):
+    driver = (
+        Driver.query
+        .filter(Driver.status == 'active',
+                Driver.license_number == data['blx'])  # Filter by active status and license number
+        .options(joinedload(Driver.user))  # Load related User data along with Driver
+        .first()  # Use first() to get a single result instead of a list
+    )
+    if not driver:
+        return ({'error': 'Có lỗi xảy ra khi tìm tài xế'}), 404
+    # Kiểm tra trùng lặp email hoặc phone với user khác
+    print('driver',driver)
+    existing_user = User.query.filter(
+        or_(
+            User.email == data["email"],
+            User.phone == data["phone"]
+        ),
+        User.id != driver.user.id  # Tránh kiểm tra chính tài xế này
+    ).first()
+    if existing_user:
+        return {
+            "status": "fail",
+            "message": "Email hoặc số điện thoại đã được sử dụng bởi tài khoản khác.",
+        }, 409
+
+    # không check bus id mà thêm luôn, lỗi -> do bus_id ko ton tai
+    driver.user.email = data['email']
+    driver.user.phone = data['phone']
+    driver.bus_id = data['bus_id']
+    try:
+        db.session.commit()  # All changes are saved when commit() is called
+        return {
+            "status": "success",
+            "message": "Cập nhật thông tin tài xế thành công.",
+        }, 200
+    except Exception as e:
+        # In case of error, rollback the changes
+        db.session.rollback()
+        return {
+            "status": "fail",
+            "message": f"Cập nhật thất bại.",
+        }, 500
+
+def update_manager:
+    return
 def get_all_manager():
-    return User.query.all()
+    return User.query.filter_by(isDeleted=False,role = 3).all()
+def get_all_user():
+    return User.query.filter_by(isDeleted=False,role = 1).all()
+def delete_user(data):
+    try:
+        email = data['email']
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            return ({'error': 'User not found'}), 404
+        user.isDeleted = True
+        # Lưu thay đổi vào cơ sở dữ liệu
+        db.session.commit()
+        return ({'message': 'Xóa người dùng thành công'}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        raise e  # Hoặc ghi log lỗi
+def delete_tai_xe(data):
+    try:
+        email = data['email']
+        user = User.query.filter_by(email=email).first()
+        if user:
+            tx = Driver.query.filter_by(user_id=user.id).first()
+            if tx:
+                tx.status = 'deleted'
+                user.isDeleted = True
+                # Lưu thay đổi vào cơ sở dữ liệu
+                db.session.commit()
+                return ({'message': 'Xóa tài xế thành công'}), 200
+            else:
+                return ({'error': 'Driver not found'}), 404
+        if not user:
+            return ({'error': 'User not found'}), 404
+    except Exception as e:
+        db.session.rollback()
+        raise e  # Hoặc ghi log lỗi
 def get_all_driver():
     # Lấy tất cả các driver và thông tin user tương ứng
-    drivers = Driver.query.options(joinedload(Driver.user)).all()
+    drivers = (
+        Driver.query
+        .filter(Driver.status == 'active')  # Lọc trước
+        .options(joinedload(Driver.user))  # Sau đó nạp dữ liệu liên quan
+        .all()
+    )
 
     # Chuyển dữ liệu thành dạng dictionary phẳng
     result = []
