@@ -1,5 +1,5 @@
 from .. import db
-from app.main.model.routes import Route  # Import the Route model for foreign key reference
+from app.main.model.map import BusRoute
 
 class Bus(db.Model):
     """ Bus Model for storing bus-related details """
@@ -12,10 +12,10 @@ class Bus(db.Model):
     status = db.Column(db.String(20), nullable=False)  # Status of the bus (active, maintenance, etc.)
 
     # Foreign Key to Routes table, assuming Route table exists with a primary key of route_id
-    route_id = db.Column(db.Integer, db.ForeignKey('route.route_id'), nullable=False)
+    route_id = db.Column(db.Integer, db.ForeignKey('road.id'), nullable=False)
 
     # Relationship with Route
-    route = db.relationship('Route', backref='buses', lazy=True)
+    road = db.relationship('BusRoute', backref='buses', lazy=True)
 
     def __repr__(self):
         return f"<Bus {self.name} - {self.plate_number}>"

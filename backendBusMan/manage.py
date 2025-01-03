@@ -9,6 +9,8 @@ from app.main.model import blacklist
 from app.main.model import bus
 from app.main.model import driver
 from app.main.model import routes
+from app.main.model import map
+from app.main.model import feedback
 from app import blueprint
 
 

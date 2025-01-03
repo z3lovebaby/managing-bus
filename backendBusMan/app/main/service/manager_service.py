@@ -29,7 +29,7 @@ def create(data):
             name = pascal_case_name,
             phone=data['phone'],
             admin=False,
-            role = 3,
+            role = 2,
             username=data['username'],
             password=data['password'],
             registered_on=datetime.datetime.utcnow()
@@ -78,7 +78,7 @@ def create_driver(data):
         name=pascal_case_name,
         phone=data["phone"],
         admin=False,
-        role=2,
+        role=4,
         username=data["username"],
         password=data["password"],
         registered_on=datetime.datetime.utcnow(),
@@ -152,10 +152,10 @@ def update_driver(data):
             "message": f"Cập nhật thất bại.",
         }, 500
 
-def update_manager:
+def update_manager():
     return
 def get_all_manager():
-    return User.query.filter_by(isDeleted=False,role = 3).all()
+    return User.query.filter_by(isDeleted=False,role = 2).all()
 def get_all_user():
     return User.query.filter_by(isDeleted=False,role = 1).all()
 def delete_user(data):
