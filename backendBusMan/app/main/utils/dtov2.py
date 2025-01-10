@@ -1,16 +1,16 @@
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr, constr
+from pydantic import BaseModel, EmailStr, constr, Field
 from typing import Optional
-import re
 #User
 class UserRegisterDTO(BaseModel):
-    fname: constr(min_length=2, max_length=50)  # Độ dài từ 2 đến 50 ký tự
+    fname: constr(min_length=2, max_length=50)
     lname: constr(min_length=2, max_length=50)
-    username: constr(min_length=5, max_length=20)  # Độ dài từ 5 đến 20 ký tự
+    username: constr(min_length=5, max_length=20)
     email: EmailStr
-    phone: constr(regex=r'^\+?(\d{1,4})?[\s-]?\(?\d{1,3}\)?[\s-]?\d{1,3}[\s-]?\d{1,4}$')  # Kiểm tra định dạng số điện thoại
-    password: constr(min_length=8, max_length=20)  # Độ dài từ 8 đến 20 ký tự
+    phone: constr(regex=r'^\+?(\d{1,4})?[\s-]?\(?\d{1,3}\)?[\s-]?\d{1,3}[\s-]?\d{1,4}$')
+    password: constr(min_length=8, max_length=20)
+
 class UserList(BaseModel):
     name: Optional[str]
     username: Optional[str]

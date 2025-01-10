@@ -1,6 +1,8 @@
 from .. import db
 from app.main.model.map import BusRoute
-
+from geoalchemy2 import Geometry
+from typing import Optional
+from pydantic import BaseModel
 
 class Bus(db.Model):
     """ Bus Model for storing bus-related details """
@@ -11,7 +13,7 @@ class Bus(db.Model):
     name = db.Column(db.String(100), nullable=True)
     model = db.Column(db.String(50), nullable=True)
     status = db.Column(db.String(20), default='Active')
-    route_id = db.Column(db.Integer, ForeignKey('routes.route_id'), nullable=True)
+    route_id = db.Column(db.Integer, db.ForeignKey('routes.route_id'), nullable=True)
     current_location = db.Column(Geometry('POINT', srid=4326), nullable=True)  # PostGIS Point geometry
 
     # Foreign Key to Routes table, assuming Route table exists with a primary key of route_id
