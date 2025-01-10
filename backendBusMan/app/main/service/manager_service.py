@@ -156,6 +156,7 @@ def update_driver(data):
 
 def update_manager():
     return
+
 def get_all_manager():
     managers = User.query.filter_by(isDeleted=False,role = 2).all()
     return [ManDTO.from_orm(manager).dict() for manager in managers]

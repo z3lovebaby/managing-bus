@@ -47,3 +47,4 @@ blueprint.register_blueprint(map_api, url_prefix='/map')
 blueprint.register_blueprint(bus_api, url_prefix='/bus')
 blueprint.register_blueprint(feedback_api, url_prefix='/feedback')
 blueprint.register_blueprint(noti_api, url_prefix='/notifications')
+
