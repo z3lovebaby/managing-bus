@@ -4,12 +4,13 @@ from app.main import db
 from sqlalchemy import text
 from sqlalchemy.orm import joinedload
 
-from app.main.controller.manager_controller import driver
+#from app.main.controller.manager_controller import driver
 from app.main.model.bus import Bus
 from sqlalchemy import text
 
 from app.main.model.driver import Driver
 from app.main.model.user import User
+from app.main.utils.dtov2 import BusDTO
 
 
 def get_st_end(bus_id):
@@ -55,7 +56,8 @@ def get_st_end(bus_id):
 
     return {"message": "Không thể lấy tọa độ của tuyến xe."}, 500
 def get_all_bus():
-    return Bus.query.filter_by(status = 'active').all()
+    buses = Bus.query.filter_by(status='active').all()  # Lấy danh sách các xe bus với trạng thái 'active'
+    return [BusDTO.from_orm(bus).dict() for bus in buses]
 def get_bus(data):
     token = data.split(" ")[1]
     resp = User.decode_auth_token(token)

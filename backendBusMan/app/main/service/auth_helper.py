@@ -9,8 +9,8 @@ class Auth:
         print('data',data)
         try:
             # fetch the user data
-            user = User.query.filter_by(email=data.get('email')).first()
-            if user and user.check_password(data.get('password')):
+            user = User.query.filter_by(email=data.email).first()
+            if user and user.check_password(data.password):
                 auth_access_token = user.encode_auth_token(user,12)
                 auth_refresh_token = user.encode_auth_token(user,24)
                 if auth_access_token and auth_refresh_token:
@@ -22,13 +22,14 @@ class Auth:
                         'role': user.role,
                         'admin':user.admin
                     }
-                    return response_object, 200
+                    print(response_object)
+                    return response_object, 201
             else:
                 response_object = {
                     'status': 'fail',
                     'message': 'email or password does not match.'
                 }
-                return response_object, 401
+                return response_object, 400
 
         except Exception as e:
             print(e)
@@ -36,14 +37,14 @@ class Auth:
                 'status': 'fail',
                 'message': 'Try again'
             }
-            return response_object, 500
+            return response_object, 400
 
     @staticmethod
     def get_refresh_token(data):
         print('data', data)
         try:
             #print(data.get('refresh_token'))
-            decoded_token = User.decode_auth_token(data.get('refresh_token'))
+            decoded_token = User.decode_auth_token(data.refresh_token)
             print('decode',decoded_token)
             if(decoded_token):
                 user = User.query.filter_by(public_id=decoded_token.get('uuid')).first()
@@ -55,7 +56,7 @@ class Auth:
                         'access_token': auth_access_token,
                         'refresh_token': auth_refresh_token,
                     }
-                    return response_object, 200
+                    return response_object, 201
             else:
                 response_object = {
                     'status': 'fail',

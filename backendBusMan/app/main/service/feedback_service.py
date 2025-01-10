@@ -61,41 +61,14 @@ def add(data,token):
                 "message": f"Đã xảy ra lỗi khi gửi feedback: {str(e)}"
             }, 500
 
-def get_all_feed():
+def get_all_feed(page,pageSize):
     try:
-        # Lấy tham số phân trang từ request
-        page = int(request.args.get('page', 1))  # Mặc định là trang 1
-        page_size = int(request.args.get('page_size', 10))  # Mặc định 10 bản ghi mỗi trang
-        print(request.args)
-        if page < 1 or page_size < 1:
-            return jsonify({
-                "status": "fail",
-                "message": "Page và Page_size phải lớn hơn 0."
-            }), 400
-
         # Tạo alias cho các bảng User để phân biệt giữa người gửi feedback và tài xế
         user_alias = aliased(User)
         driver_user_alias = aliased(User)
 
         # Tổng số feedbacks để tính toán phân trang
         total_count = db.session.query(func.count(Feedback.id)).scalar()
-
-        # Lấy feedbacks với giới hạn phân trang
-        # feedbacks = db.session.query(Feedback, Bus, user_alias, Driver, driver_user_alias).distinct().join(
-        #     Bus, Bus.bus_id == Feedback.bus_id
-        # ).join(
-        #     user_alias, user_alias.id == Feedback.user_id
-        # ).join(
-        #     Driver, Driver.bus_id == Bus.bus_id
-        # ).join(
-        #     driver_user_alias, driver_user_alias.id == Driver.user_id
-        # ).order_by(
-        #     Feedback.created_at.desc()
-        # ).offset(
-        #     (page - 1) * page_size
-        # ).limit(
-        #     page_size
-        # ).all()
         feedbacks = (db.session.query(Feedback, Bus, user_alias,Driver,driver_user_alias).distinct().join(
             Bus, Bus.bus_id == Feedback.bus_id
         ).join(user_alias, user_alias.id == Feedback.user_id).join(
@@ -103,9 +76,9 @@ def get_all_feed():
            driver_user_alias, driver_user_alias.id == Driver.user_id
         ).order_by(Feedback.created_at.desc()
         ).offset(
-            (page-1)*page_size
+            (page-1)*pageSize
         ).limit(
-            page_size
+            pageSize
         )
         .all())
         print(feedbacks)
@@ -136,9 +109,9 @@ def get_all_feed():
             "status": "success",
             "message": "Lấy danh sách feedback thành công.",
             "data": feedback_list,
-            "total_count": total_count,  # Tổng số bản ghi
+            "total": total_count,  # Tổng số bản ghi
             "page": page,  # Trang hiện tại
-            "page_size": page_size  # Số bản ghi mỗi trang
+            "page_size": pageSize  # Số bản ghi mỗi trang
         }, 200
 
     except Exception as e:

@@ -13,21 +13,21 @@ def to_pascal_case(name):
 def save_new_user(data):
     user = User.query.filter(
         or_(
-            User.email == data['email'],
-            User.phone == data['phone'],
-            User.username == data['username']
+            User.email == data.email,
+            User.phone == data.phone,
+            User.username == data.username
         )
     ).first()
     if not user:
-        pascal_case_name = to_pascal_case(data['fname']) + " " + to_pascal_case(data['lname'])
+        pascal_case_name = to_pascal_case(data.fname) + " " + to_pascal_case(data.lname)
         new_user = User(
             public_id=str(uuid.uuid4()),
-            email=data['email'],
+            email=data.email,
             name = pascal_case_name,
-            phone=data['phone'],
+            phone=data.phone,
             admin=False,
-            username=data['username'],
-            password=data['password'],
+            username=data.username,
+            password=data.password,
             registered_on=datetime.datetime.utcnow()
         )
         save_changes(new_user)
@@ -37,7 +37,7 @@ def save_new_user(data):
             'status': 'fail',
             'message': 'User already exists. Please Log in.',
         }
-        return response_object, 409
+        return response_object, 400
 
 
 def get_all_users():
