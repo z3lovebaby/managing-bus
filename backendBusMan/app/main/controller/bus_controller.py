@@ -1,50 +1,55 @@
-from flask import request, jsonify
-from flask_restx import Resource, Namespace
-from app.main.service.bus_service import get_all_buses, get_bus_by_id, create_bus, update_bus, delete_bus
-from app.main.model.bus import Bus
-from app.main.model.bus import BusCreate, BusOut, BusUpdate
-from geoalchemy2 import WKTElement
+from flask import request, Blueprint, jsonify, make_response
+from flask_pydantic_openapi import Response
+from flask_restx import Resource
+from pydantic import BaseModel
 
+from app.main import api
+from app.main.service.bus_service import get_all_bus, get_st_end, get_bus
+from app.main.utils.decorator import token_required
+from app.main.utils.dto import Bus
+from typing import Dict, Any, List
 
-api = Namespace('bus', description='Bus related operations')
+from app.main.utils.dtov2 import BusDTO
 
-@api.route('/')
-class BusList(Resource):
-    @api.doc('list_of_all_buses')
-    def get(self):
-        """List all buses"""
-        buses = get_all_buses()
-        return {"status": "success", "data": buses}
+class BusQuery(BaseModel):
+    bus_id: int
+class Message(BaseModel):
+    response: Dict[str, Any]  # response sẽ chứa danh sách các BusDTO
+bus_api = Blueprint('bus_api', __name__)
 
-    @api.doc('create_new_bus')
-    def post(self):
-        """Create a new bus"""
-        try:
-            data = BusCreate.parse_obj(request.json)  # Pydantic validation
-            return create_bus(data)
-        except Exception as e:
-            return {"status": "fail", "message": str(e)}
+@bus_api.route('/get-all-bus', methods=['GET'])
+def list_all_bus():
+    return get_all_bus()
 
-@api.route('/<int:bus_id>')
-class BusDetail(Resource):
-    @api.doc('get_bus_by_id')
-    def get(self, bus_id):
-        """Get a bus by ID"""
-        bus = get_bus_by_id(bus_id)
-        if bus:
-            return {"status": "success", "data": bus}
-        return {"status": "fail", "message": "Bus not found."}
-
-    @api.doc('update_bus')
-    def put(self, bus_id):
-        """Update an existing bus"""
-        try:
-            data = BusUpdate.parse_obj(request.json)  # Pydantic validation
-            return update_bus(bus_id, data)
-        except Exception as e:
-            return {"status": "fail", "message": str(e)}
-
-    @api.doc('delete_bus')
-    def delete(self, bus_id):
-        """Delete a bus"""
-        return delete_bus(bus_id)
+@bus_api.route('/get-st-end', methods=['GET'])
+def get_bus_location():
+    bus_id = request.args.get('bus_id', type=int)
+    if not bus_id:
+        return {"message": "bus_id is required"}, 400
+    return get_st_end(bus_id)
+#
+# Để validate headers:
+@bus_api.route('/get-bus', methods=['GET'])
+def get_bus_info():
+    auth_header = request.headers.get('Authorization')
+    if not auth_header:
+        return {"message": "token is required"}, 400
+    return get_bus(data=auth_header)
+# @api.route('/get-st-end')
+# class ListBus(Resource):
+#     @api.doc('lat lng cua xe')
+#     @api.marshal_list_with(latlng, envelope='data')
+#     def get(self):
+#         bus_id = request.args.get('bus_id', type=int)  # Lấy từ query parameters
+#         if not bus_id:
+#             return {"message": "bus_id is required"}, 400
+#         return get_st_end(bus_id)
+# @api.route('/get-bus')
+# class GetBus(Resource):
+#     @api.doc('lay thong tin xe tu token user-taixe')
+#     def get(self):
+#          # Lấy từ query parameters
+#         auth_header = request.headers.get('Authorization')
+#         if not auth_header:
+#              return {"message": "token is required"}, 400
+#         return get_bus(data = auth_header)

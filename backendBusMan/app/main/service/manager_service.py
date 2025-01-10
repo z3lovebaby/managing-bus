@@ -8,6 +8,8 @@ from sqlalchemy.orm import joinedload
 from app.main import db
 from app.main.model.driver import Driver
 from app.main.model.user import User
+from app.main.utils.dtov2 import ManDTO, UserList
+
 
 def to_pascal_case(name):
     # Tách chuỗi thành các từ, viết hoa chữ cái đầu của mỗi từ, sau đó nối lại với nhau
@@ -16,22 +18,22 @@ def to_pascal_case(name):
 def create(data):
     user = User.query.filter(
         or_(
-            User.email == data['email'],
-            User.phone == data['phone'],
-            User.username == data['username']
+            User.email == data.email,
+            User.phone == data.phone,
+            User.username == data.username
         )
     ).first()
     if not user:
-        pascal_case_name = to_pascal_case(data['name'])
+        pascal_case_name = to_pascal_case(data.name)
         new_user = User(
             public_id=str(uuid.uuid4()),
-            email=data['email'],
+            email=data.email,
             name = pascal_case_name,
-            phone=data['phone'],
+            phone=data.phone,
             admin=False,
-            role = 3,
-            username=data['username'],
-            password=data['password'],
+            role = 2,
+            username=data.username,
+            password=data.password,
             registered_on=datetime.datetime.utcnow()
         )
         save_changes(new_user)
@@ -78,7 +80,7 @@ def create_driver(data):
         name=pascal_case_name,
         phone=data["phone"],
         admin=False,
-        role=2,
+        role=4,
         username=data["username"],
         password=data["password"],
         registered_on=datetime.datetime.utcnow(),
@@ -152,11 +154,26 @@ def update_driver(data):
             "message": f"Cập nhật thất bại.",
         }, 500
 
+def update_manager():
+    return
 
 def get_all_manager():
-    return User.query.filter_by(isDeleted=False,role = 3).all()
-def get_all_user():
-    return User.query.filter_by(isDeleted=False,role = 1).all()
+    managers = User.query.filter_by(isDeleted=False,role = 2).all()
+    return [ManDTO.from_orm(manager).dict() for manager in managers]
+# def get_all_user():
+#     users = User.query.filter_by(isDeleted=False,role = 1).all()
+#     return [UserList.from_orm(user).dict() for user in users]
+def get_all_user(page, pageSize):
+    # Lấy tổng số user
+    total = User.query.filter_by(isDeleted=False, role=1).count()
+    users = (User.query.filter_by(isDeleted=False, role=1)
+             .offset((page - 1) * pageSize)
+             .limit(pageSize)
+             .all())
+    return {
+        'data': [UserList.from_orm(user).dict() for user in users],
+        'total': total
+    }
 def delete_user(data):
     try:
         email = data['email']
@@ -190,11 +207,14 @@ def delete_tai_xe(data):
     except Exception as e:
         db.session.rollback()
         raise e  # Hoặc ghi log lỗi
-def get_all_driver():
+def get_all_driver(page,pageSize):
     # Lấy tất cả các driver và thông tin user tương ứng
+    total = Driver.query.filter(Driver.status == 'active').count()
     drivers = (
         Driver.query
-        .filter(Driver.status == 'active')  # Lọc trước
+        .filter(Driver.status == 'active')
+        .offset((page - 1) * pageSize)
+        .limit(pageSize)
         .options(joinedload(Driver.user))  # Sau đó nạp dữ liệu liên quan
         .all()
     )
@@ -214,7 +234,10 @@ def get_all_driver():
             "username": driver.user.username,
         })
 
-    return result
+    return {
+        "data":result,
+        "total":total
+    }
 
 def save_changes(data):
     try:

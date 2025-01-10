@@ -4,7 +4,11 @@ import requestApi from "../helpers/api";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
 import * as actions from "../redux/actions";
+import { useTranslation } from "react-i18next";
+
 const Login = () => {
+  const { t } = useTranslation();
+  //console.log(t("login.title"));
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [loginData, setLoginData] = useState({});
@@ -28,12 +32,11 @@ const Login = () => {
   const validateForm = () => {
     let isValid = true;
     const errors = {};
-    if (loginData.email === "" || loginData.email === undefined) {
-      errors.email = "Hãy nhập email hoặc username";
+    if (!loginData.email) {
+      errors.email = t("login.errorEmail");
     }
-
-    if (loginData.password === "" || loginData.password === undefined) {
-      errors.password = "Nhập lại mật khẩu";
+    if (!loginData.password) {
+      errors.password = t("login.errorPassword");
     }
 
     if (Object.keys(errors).length > 0) {
@@ -47,37 +50,46 @@ const Login = () => {
   };
 
   const onSubmit = () => {
-    console.log(loginData);
     let valid = validateForm();
     if (valid) {
-      //request login api
-      console.log("request login api");
       dispatch(actions.controlLoading(true));
       requestApi("/auth/login", "POST", loginData)
         .then((res) => {
-          console.log(res);
           localStorage.setItem("access_token", res.data.Authorization);
-          localStorage.setItem("admin", res.data.role);
+          localStorage.setItem("role", res.data.role);
+          localStorage.setItem("admin", res.data.admin);
           localStorage.setItem("refresh_token", res.data.refresh_token);
           toast.success(res.data.message, {
             position: "top-right",
             autoClose: 3000,
           });
           dispatch(actions.controlLoading(false));
-          navigate("/admin");
+          if (!res.data.admin) {
+            switch (res.data.role) {
+              case 4:
+                navigate("/driver");
+                break;
+              default:
+                navigate("/");
+            }
+          } else navigate("/admin");
         })
         .catch((err) => {
-          dispatch(actions.controlLoading(false));
           console.log(err);
-          if (typeof err.response !== "undefined") {
-            if (err.response.status !== 201) {
+          dispatch(actions.controlLoading(false));
+          if (err.response) {
+            if ((err.response.status = "422")) {
+              toast.error("Dữ liệu không hợp lệ", {
+                position: "top-right",
+                autoClose: 3000,
+              });
+            } else
               toast.error(err.response.data.message, {
                 position: "top-right",
                 autoClose: 3000,
               });
-            }
           } else {
-            toast.error("Server is down. Please try again!", {
+            toast.error(t("serverError"), {
               position: "top-right",
               autoClose: 3000,
             });
@@ -98,7 +110,7 @@ const Login = () => {
                 <div className="card shadow-lg border-0 rounded-lg mt-5">
                   <div className="card-header">
                     <h3 className="text-center font-weight-light my-4">
-                      Đăng nhập
+                      {t("login.title")}
                     </h3>
                   </div>
                   <div className="card-body">
@@ -109,9 +121,9 @@ const Login = () => {
                           type="email"
                           name="email"
                           onChange={onChange}
-                          placeholder="name@example.com"
+                          placeholder={t("login.email")}
                         />
-                        <label>Email/Username</label>
+                        <label>{t("login.email")}</label>
                         {formErrors.email && (
                           <p style={{ color: "red" }}>{formErrors.email}</p>
                         )}
@@ -122,30 +134,30 @@ const Login = () => {
                           name="password"
                           type="password"
                           onChange={onChange}
-                          placeholder="Password"
+                          placeholder={t("login.password")}
                         />
-                        <label>Password</label>
+                        <label>{t("login.password")}</label>
                         {formErrors.password && (
                           <p style={{ color: "red" }}>{formErrors.password}</p>
                         )}
                       </div>
                       <div className="d-flex align-items-center justify-content-between mt-4 mb-0">
                         <a className="small" href="password.html">
-                          Quên mật khẩu?
+                          {t("login.forgotPassword")}
                         </a>
                         <button
                           className="btn btn-primary"
                           type="button"
                           onClick={onSubmit}
                         >
-                          Login
+                          {t("login.loginButton")}
                         </button>
                       </div>
                     </form>
                   </div>
                   <div className="card-footer text-center py-3">
                     <div className="small">
-                      <Link to="/register">Chưa có tài khoản?Đăng ký ngay</Link>
+                      <Link to="/register">{t("login.noAccount")}</Link>
                     </div>
                   </div>
                 </div>
@@ -162,9 +174,9 @@ const Login = () => {
                 Copyright &copy; Your Website 2023
               </div>
               <div>
-                <a href="#">Privacy Policy</a>
+                <a href="#">{t("privacyPolicy")}</a>
                 &middot;
-                <a href="#">Terms &amp; Conditions</a>
+                <a href="#">{t("termsAndConditions")}</a>
               </div>
             </div>
           </div>

@@ -1,11 +1,7 @@
 from .. import db
-from app.main.model.routes import Route  # Import the Route model for foreign key reference
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey
-from sqlalchemy.orm import relationship
-from geoalchemy2 import Geometry
-from pydantic import BaseModel
-from typing import Optional
-from geoalchemy2.elements import WKTElement
+from app.main.model.map import BusRoute
+
+
 class Bus(db.Model):
     """ Bus Model for storing bus-related details """
     __tablename__ = "bus"
@@ -18,7 +14,11 @@ class Bus(db.Model):
     route_id = db.Column(db.Integer, ForeignKey('routes.route_id'), nullable=True)
     current_location = db.Column(Geometry('POINT', srid=4326), nullable=True)  # PostGIS Point geometry
 
-    route = relationship('Route', backref='bus')
+    # Foreign Key to Routes table, assuming Route table exists with a primary key of route_id
+    route_id = db.Column(db.Integer, db.ForeignKey('road.id'), nullable=False)
+
+    # Relationship with Route
+    road = db.relationship('BusRoute', backref='buses', lazy=True)
 
 
     def __init__(self, plate_number, name, model, status, route_id, current_location):

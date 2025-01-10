@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useState, useEffect } from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
@@ -17,10 +17,43 @@ import MailIcon from "@mui/icons-material/Mail";
 import PersonIcon from "@mui/icons-material/Person";
 import { Outlet, Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { Autocomplete, TextField } from "@mui/material";
+import { useTranslation } from "react-i18next";
+import MenuItem from "@mui/material/MenuItem";
+import { toast } from "react-toastify";
 export default function Menu() {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const [language, setLanguage] = useState({
+    code: "vi",
+    label: "Tiếng Việt",
+    flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Flag_of_Vietnam.svg/800px-Flag_of_Vietnam.svg.png",
+  });
 
+  const languages = [
+    {
+      code: "vi",
+      label: "Tiếng Việt",
+      flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Flag_of_Vietnam.svg/800px-Flag_of_Vietnam.svg.png",
+    },
+    {
+      code: "en",
+      label: "English",
+      flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Flag_of_the_United_Kingdom_%281-2%29.svg/1200px-Flag_of_the_United_Kingdom_%281-2%29.svg.png",
+    },
+  ];
+  const changeLanguage = (lang) => {
+    i18n.changeLanguage(lang);
+    localStorage.setItem("i18nextLng", lang);
+  };
+
+  const handleChange = (event, newValue) => {
+    if (newValue) {
+      setLanguage(newValue);
+      changeLanguage(newValue.code);
+    }
+  };
   const handleNavClick = (link) => {
     navigate(link);
   };
@@ -31,11 +64,20 @@ export default function Menu() {
   const handleMenuClick = () => {
     setDrawerOpen(!drawerOpen);
   };
-
+  const onHandleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("admin");
+    toast.success("Đăng xuất thành công", {
+      position: "top-right",
+      autoClose: 3000,
+    });
+    navigate("/login");
+  };
   const sideNavItems = [
-    { text: "Dashboard", icon: <InboxIcon />, link: "/admin/admindb" },
-    { text: "Quản lý manager", icon: <PersonIcon />, link: "/admin/qluser" },
-    { text: "Logout", icon: <MailIcon />, link: "/" },
+    { text: t("dashboard"), icon: <InboxIcon />, link: "/admin" },
+    { text: t("userManagement"), icon: <PersonIcon />, link: "/admin/qluser" },
   ];
 
   const renderSideNav = () => (
@@ -81,9 +123,57 @@ export default function Menu() {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Managing Bus
+            {t("appTitle")}
           </Typography>
-          <Button color="inherit">Logout</Button>
+          <Box
+            sx={{
+              width: 200,
+              backgroundColor: "rgb(243 243 243 / 80%)",
+              border: "1px solid rgba(255, 255, 255, 0.5)",
+              borderRadius: "8px",
+              color: "white",
+            }}
+          >
+            <Autocomplete
+              options={languages}
+              getOptionLabel={(option) => option.label}
+              renderOption={(props, option) => (
+                <MenuItem {...props} key={option.code} sx={{ mt: 1 }}>
+                  <Box
+                    component="img"
+                    src={option.flag}
+                    alt={option.label}
+                    sx={{ width: 24, height: 10, mr: 1 }}
+                  />
+                  <Typography>{option.label}</Typography>
+                </MenuItem>
+              )}
+              value={language}
+              onChange={handleChange}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  variant="outlined"
+                  InputProps={{
+                    ...params.InputProps,
+                    sx: { padding: 0 }, // Remove padding inside the input
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      padding: 0, // Remove padding from the root
+                    },
+                  }}
+                />
+              )}
+            />
+          </Box>
+          <Button
+            color="inherit"
+            sx={{ minWidth: "100px", textAlign: "center" }}
+            onClick={onHandleLogout}
+          >
+            {t("logout")}
+          </Button>
         </Toolbar>
       </AppBar>
 

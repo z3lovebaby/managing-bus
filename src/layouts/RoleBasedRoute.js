@@ -1,15 +1,17 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 
-const RoleBasedRoute = ({ requiredRole }) => {
+const RoleBasedRoute = () => {
   const user = JSON.parse(localStorage.getItem("admin")); // Lấy user từ localStorage
 
-  // Kiểm tra vai trò
-  console.log(user);
-  return user && user === requiredRole ? (
-    <Outlet />
-  ) : (
-    <Navigate to="/" replace />
+  const ErrorComponent = () => (
+    <div style={{ textAlign: "center", marginTop: "50px" }}>
+      <h1>Lỗi truy cập</h1>
+      <p>Bạn không có quyền truy cập vào trang này.</p>
+      <a href="/">Quay về trang chủ</a>
+    </div>
   );
+
+  return user ? <Outlet /> : <ErrorComponent />;
 };
 
 export default RoleBasedRoute;

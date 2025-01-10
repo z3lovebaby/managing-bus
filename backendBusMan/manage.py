@@ -1,17 +1,13 @@
 import os
 import unittest
-from flask import Flask
+
+from flask import jsonify
 from flask_migrate import Migrate
 from flask.cli import with_appcontext
+from pydantic import ValidationError
+
 from app.main import create_app, db
-from app.main.model import user
-from app.main.model import blacklist
-from app.main.model import bus
-from app.main.model import driver
-from app.main.model import routes
 from app import blueprint
-
-
 # Create Flask app
 app = create_app(os.getenv('BOILERPLATE_ENV') or 'dev')
 app.register_blueprint(blueprint)
@@ -21,20 +17,23 @@ app.app_context().push()
 # Set up Flask-Migrate
 migrate = Migrate(app, db)
 
-# Register the 'db' command for migrations
-# @app.cli.command('db')
-# @with_appcontext
-# def db():
-#     """Runs database migration commands."""
-#     from flask_migrate import upgrade, migrate, stamp
-#     upgrade()  # Run the migration upgrade command (you can add other commands as needed)
-#     print("Database migration completed.")
-
+# Error handler for validation errors (Pydantic)
+@app.errorhandler(ValidationError)
+def handle_pydantic_validation_error(error):
+    """
+    Handles Pydantic validation errors and returns a customized response.
+    """
+    print('12121')
+    response = {
+        "message": "Invalid input data",
+        "errors": error.errors()  # This will include the validation errors from Pydantic
+    }
+    return jsonify(response), 422
 # Set up custom 'run' command
 @app.cli.command('run')
 def run():
     """Runs the application."""
-    app.run()
+    app.run(debug=True)
 
 # Set up custom 'test' command
 @app.cli.command('test')
@@ -49,4 +48,4 @@ def test():
     return 1
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

@@ -9,25 +9,27 @@ class Auth:
         print('data',data)
         try:
             # fetch the user data
-            user = User.query.filter_by(email=data.get('email')).first()
-            if user and user.check_password(data.get('password')):
-                auth_access_token = user.encode_auth_token(user,1)
-                auth_refresh_token = user.encode_auth_token(user,10)
+            user = User.query.filter_by(email=data.email).first()
+            if user and user.check_password(data.password):
+                auth_access_token = user.encode_auth_token(user,12)
+                auth_refresh_token = user.encode_auth_token(user,24)
                 if auth_access_token and auth_refresh_token:
                     response_object = {
                         'status': 'success',
                         'message': 'Đăng nhập thành công.',
                         'Authorization': auth_access_token,
                         'refresh_token': auth_refresh_token,
-                        'role': user.admin
+                        'role': user.role,
+                        'admin':user.admin
                     }
-                    return response_object, 200
+                    print(response_object)
+                    return response_object, 201
             else:
                 response_object = {
                     'status': 'fail',
                     'message': 'email or password does not match.'
                 }
-                return response_object, 401
+                return response_object, 400
 
         except Exception as e:
             print(e)
@@ -35,26 +37,32 @@ class Auth:
                 'status': 'fail',
                 'message': 'Try again'
             }
-            return response_object, 500
+            return response_object, 400
 
     @staticmethod
     def get_refresh_token(data):
         print('data', data)
         try:
             #print(data.get('refresh_token'))
-            decoded_token = User.decode_auth_token(data.get('refresh_token'))
+            decoded_token = User.decode_auth_token(data.refresh_token)
             print('decode',decoded_token)
             if(decoded_token):
                 user = User.query.filter_by(public_id=decoded_token.get('uuid')).first()
-                auth_access_token = user.encode_auth_token(user, 1)
-                auth_refresh_token = user.encode_auth_token(user, 10)
+                auth_access_token = user.encode_auth_token(user, 12)
+                auth_refresh_token = user.encode_auth_token(user, 24)
                 print(auth_refresh_token,auth_access_token)
                 if auth_access_token and auth_refresh_token:
                     response_object = {
                         'access_token': auth_access_token,
                         'refresh_token': auth_refresh_token,
                     }
-                    return response_object, 200
+                    return response_object, 201
+            else:
+                response_object = {
+                    'status': 'fail',
+                    'message': 'refresh_token is invalid'
+                }
+                return response_object, 401
         except Exception as e:
             print(e)
             response_object = {
@@ -89,11 +97,13 @@ class Auth:
     @staticmethod
     def get_logged_in_user(new_request):
         # get the auth token
-        auth_token = new_request.headers.get('Authorization')
+        token = new_request.headers.get('Authorization')
+        auth_token = token.split(" ")[1]
         if auth_token:
             resp = User.decode_auth_token(auth_token)
+            print('phu', resp)
             if not isinstance(resp, str):
-                user = User.query.filter_by(id=resp).first()
+                user = User.query.filter_by(public_id=resp['uuid']).first()
                 response_object = {
                     'status': 'success',
                     'data': {

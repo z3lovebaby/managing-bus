@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Outlet } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { ScaleLoader } from "react-spinners";
@@ -14,11 +14,6 @@ const override = {
 };
 
 const Layout = () => {
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  const toggleDrawer = (open) => {
-    setDrawerOpen(open);
-  };
   const statusLoading = useSelector((state) => state.globalLoading.status);
   return (
     <div>

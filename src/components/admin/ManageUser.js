@@ -20,6 +20,7 @@ import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import * as actions from "../../redux/actions";
 import requestApi from "../../helpers/api";
+import { useTranslation } from "react-i18next";
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
     backgroundColor: theme.palette.common.black,
@@ -63,6 +64,7 @@ let manager = {
   phone: "0987654321",
 };
 export default function ManageUser() {
+  const { t, i18n } = useTranslation();
   const [rows, setRows] = useState([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [formErrors, setFormErrors] = useState({});
@@ -162,9 +164,9 @@ export default function ManageUser() {
     try {
       dispatch(actions.controlLoading(true));
       const response = await requestApi("/manager/", "GET");
-      console.log(response.data.data);
-      managers = response.data.data;
-      setRows(response.data.data); // Giả sử API trả về một mảng managers
+      console.log(response.data);
+      managers = response.data;
+      setRows(response.data); // Giả sử API trả về một mảng managers
       dispatch(actions.controlLoading(false));
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -322,7 +324,7 @@ export default function ManageUser() {
   return (
     <div>
       <Typography variant="h4" component="h2">
-        Quản lý managers nhà xe
+        {t("manageManagers")}
       </Typography>
       <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
         <Button
@@ -331,7 +333,7 @@ export default function ManageUser() {
           sx={{ mt: 2, mb: 2 }}
           onClick={() => handleOpen()}
         >
-          Thêm mới
+          {t("addNew")}
         </Button>
         <Autocomplete
           sx={{ width: 500 }}
@@ -350,10 +352,10 @@ export default function ManageUser() {
         <Table sx={{ minWidth: 700 }} aria-label="customized table">
           <TableHead>
             <TableRow>
-              <StyledTableCell>Full name</StyledTableCell>
-              <StyledTableCell align="left">Mail</StyledTableCell>
-              <StyledTableCell align="left">Phone</StyledTableCell>
-              <StyledTableCell align="center">Actions</StyledTableCell>
+              <StyledTableCell>{t("fullName")}</StyledTableCell>
+              <StyledTableCell align="left">{t("email")}</StyledTableCell>
+              <StyledTableCell align="left">{t("phone")}</StyledTableCell>
+              <StyledTableCell align="center">{t("actions")}</StyledTableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -373,7 +375,7 @@ export default function ManageUser() {
                       sx={{ mr: 1 }}
                       onClick={() => handleOpen(row)}
                     >
-                      View
+                      {t("view")}
                     </Button>
                     {/* Danh sách */}
                     <Button
@@ -382,7 +384,7 @@ export default function ManageUser() {
                       size="small"
                       onClick={() => handleDeleteClick(row)}
                     >
-                      Delete
+                      {t("delete")}
                     </Button>
 
                     {/* Modal delete */}
@@ -390,7 +392,9 @@ export default function ManageUser() {
                       open={deleteModalOpen}
                       onClose={() => setDeleteModalOpen(false)}
                       onConfirm={handleConfirmDelete}
-                      message={`Bạn có chắc chắn muốn xóa ${selectedItem?.name}?`}
+                      message={t("confirmDeleteMessage", {
+                        name: selectedItem?.name,
+                      })}
                     />
                   </div>
                 </StyledTableCell>
@@ -407,13 +411,13 @@ export default function ManageUser() {
       >
         <Box sx={style}>
           <Typography id="modal-modal-title" variant="h6" component="h2">
-            {isEditMode ? "Cập nhật Manager" : "Thêm mới Manager"}
+            {isEditMode ? t("updateManager") : t("addManager")}
           </Typography>
           <Grid2 container spacing={2} sx={{ mt: 2 }}>
             <Grid2 item xs={12}>
               <TextField
                 fullWidth
-                label="Full Name"
+                label={t("fullName")}
                 name="name"
                 value={newData.name}
                 onChange={handleInputChange}
@@ -422,60 +426,62 @@ export default function ManageUser() {
             <Grid2 item xs={12}>
               <TextField
                 fullWidth
-                label="Username"
+                label={t("username")}
                 name="username"
                 value={newData.username}
                 onChange={handleInputChange}
               />
               {formErrors.username && (
-                <p style={{ color: "red" }}>{formErrors.username}</p>
+                <p style={{ color: "red" }}>{t("usernameError")}</p>
               )}
             </Grid2>
             {!isEditMode && (
               <Grid2 item xs={12}>
                 <TextField
                   fullWidth
-                  label="Password"
+                  label={t("password")}
                   name="password"
                   value={newData.password}
                   onChange={handleInputChange}
                 />
                 {formErrors.password && (
-                  <p style={{ color: "red" }}>{formErrors.password}</p>
+                  <p style={{ color: "red" }}>{t("passwordError")}</p>
                 )}
               </Grid2>
             )}
             <Grid2 item xs={12}>
               <TextField
                 fullWidth
-                label="Mail"
+                label={t("email")}
                 name="email"
                 value={newData.email}
                 onChange={handleInputChange}
               />
+
               {formErrors.email && (
-                <p style={{ color: "red" }}>{formErrors.email}</p>
+                <p style={{ color: "red" }}>{t("emailError")}</p>
               )}
             </Grid2>
             <Grid2 item xs={12}>
               <TextField
                 fullWidth
-                label="Phone"
+                label={t("phone")}
                 name="phone"
                 value={newData.phone}
                 onChange={handleInputChange}
               />
+
               {formErrors.phone && (
-                <p style={{ color: "red" }}>{formErrors.phone}</p>
+                <p style={{ color: "red" }}>{t("phoneError")}</p>
               )}
             </Grid2>
           </Grid2>
           <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
             <Button variant="outlined" sx={{ mr: 2 }} onClick={handleClose}>
-              Cancel
+              {t("cancel")}
             </Button>
             <Button variant="contained" color="success" onClick={handleSubmit}>
-              {isEditMode ? "Update" : "Save"}
+              {isEditMode ? t("update") : t("save")}
             </Button>
           </Box>
         </Box>
